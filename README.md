@@ -1,0 +1,40 @@
+# Re:Source AI
+
+**현장 영상 기반 산업 폐기물 등급 판정과 산업단지 묶음 수거 매칭 에이전트**
+
+중소 제조업체 담당자가 폐기물 더미를 스마트폰으로 찍으면, 에이전트가 품목과 오염도를 판정하고, 순환자원 해당 여부를 검토하고, 같은 산업단지 안에서 묶어 수거할 기업과 처리업체를 찾은 뒤, 처리 방식별 비용과 탄소를 비교해 최적안과 견적 요청서까지 만들어 주는 서비스입니다.
+
+## 문서
+
+| 문서 | 설명 |
+|---|---|
+| [설계안 v1](docs/ReSource_AI_설계안_v1.md) | 주제, 페인포인트, 데이터, 기술 스택, 아키텍처, 유저 플로우, 구현 범위, 리스크 |
+| [아키텍처 다이어그램](docs/아키텍처_다이어그램.png) | 클라이언트 · API · 에이전트 6개 · 데이터 · 운영 계층 |
+| [유저 플로우 시퀀스](docs/유저플로우_시퀀스.png) | 사진 업로드부터 견적 요청서 발송까지의 흐름 |
+
+## 대회 6단계와 에이전트 매핑
+
+| 단계 | 에이전트 역할 | 핵심 기술 |
+|---|---|---|
+| ① 식별·분류 | 사진·영상에서 품목, 재질, 이물질 탐지 | Azure ML (RT-DETR + ByteTrack), Document Intelligence, Azure OpenAI |
+| ② 가능성 판단 | 오염도 등급과 형태별 단가로 재활용 가능성 판정 | Azure OpenAI, Fabric Lakehouse |
+| ③ 규정 검토 | 순환자원 지정 품목 여부와 인정 요건 체크리스트 | Azure AI Search (조항 단위 RAG) |
+| ④ 업종·기업 탐색 | 같은 산업단지 내 묶음 수거 후보와 처리업체 매칭 | PostgreSQL + PostGIS, OR-Tools |
+| ⑤ 비용·탄소 비교 | 경로별 비용, 운송 포함 순 탄소, KAU 환산 | Azure Maps Route API, 배출계수 |
+| ⑥ 최적안 제안 | 추천안 1개와 대안 2개, 견적 요청서·인계서 초안 | Azure OpenAI, Foundry 평가 |
+
+## 기술 스택
+
+- **에이전트**: Microsoft Foundry Agent Service + Microsoft Agent Framework
+- **백엔드**: FastAPI (Python) on Azure Container Apps
+- **프런트엔드**: Next.js + React
+- **데이터**: Azure Database for PostgreSQL (PostGIS, pgvector), Microsoft Fabric, Azure Blob Storage
+- **모델**: Azure Machine Learning + MLflow, RT-DETR, ByteTrack
+- **운영**: Entra ID, Application Insights + OpenTelemetry, GitHub Actions, Bicep
+
+## MVP 범위 (대회 시연)
+
+- 입력: 사진과 30초 이내 영상, 성분표 PDF 선택
+- 품목: 폐플라스틱과 포장재는 끝까지, 금속 스크랩과 폐목재는 식별과 규정 단계까지
+- 지역: 부산 녹산국가산업단지 좌표에 가상 기업 30곳 배치
+- 외부 발송: 모의 업체 메일함

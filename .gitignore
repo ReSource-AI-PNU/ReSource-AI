@@ -1,0 +1,39 @@
+# 환경 변수와 비밀 키
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-error.log*
+
+# 데이터와 모델 산출물 (대용량, Git LFS 또는 Blob 사용)
+data/raw/
+data/processed/
+models/
+mlruns/
+*.pt
+*.onnx
+*.mp4
+
+# 에디터와 OS
+.vscode/
+.idea/
+.DS_Store
