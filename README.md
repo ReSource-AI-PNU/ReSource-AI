@@ -4,6 +4,14 @@
 
 중소 제조업체 담당자가 폐기물 더미를 스마트폰으로 찍으면, 에이전트가 품목과 오염도를 판정하고, 순환자원 해당 여부를 검토하고, 같은 산업단지 안에서 묶어 수거할 기업과 처리업체를 찾은 뒤, 처리 방식별 비용과 탄소를 비교해 최적안과 견적 요청서까지 만들어 주는 서비스입니다.
 
+## 저장소 구성
+
+| 저장소 | 역할 |
+|---|---|
+| [ReSource-AI](https://github.com/ReSource-AI-PNU/ReSource-AI) (현재) | 설계 문서, 다이어그램, 발표 자료 |
+| [backend](https://github.com/ReSource-AI-PNU/backend) | FastAPI 에이전트 API (Python) |
+| [frontend](https://github.com/ReSource-AI-PNU/frontend) | Next.js 웹 앱 (TypeScript, Tailwind) |
+
 ## 문서
 
 | 문서 | 설명 |
