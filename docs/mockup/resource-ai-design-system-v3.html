@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re:Source AI · 디자인 시스템 v1 · 산업 원장</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400..600&display=swap">
+<style>
+:root {
+  --bg: #F2F0EA;
+  --surface: #FBFAF6;
+  --sunken: #E9E6DE;
+  --ink: #16150F;
+  --ink-2: #3A3830;
+  --muted: #6B675E;
+  --line: #DEDBD2;
+  --line-strong: #C9C5BA;
+  --marker: #E6FF3D;
+  --marker-ink: #16150F;
+  --gain: #0C7148;
+  --gain-bg: #E1F1E6;
+  --loss: #B5332A;
+  --loss-bg: #F8E4DF;
+  --warn: #9A5B00;
+  --warn-bg: #F6ECD8;
+  --photo: #2B2A24;
+  --on-ink: #FBFAF6;
+
+  --font-sans: "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable", "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "Geist Mono", "Wanted Sans Variable", ui-monospace, monospace;
+
+  --r-sm: 4px; --r-md: 6px; --r-lg: 10px; --r-full: 999px;
+  --ease-out: cubic-bezier(.2,.7,.2,1);
+  --ease-in-out: cubic-bezier(.6,0,.3,1);
+  --t-short: 180ms; --t-medium: 300ms; --t-long: 1100ms;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #12110D;
+  --surface: #1B1A15;
+  --sunken: #0D0C09;
+  --ink: #F1EFE8;
+  --ink-2: #D2CFC5;
+  --muted: #A39F94;
+  --line: #2E2C25;
+  --line-strong: #3E3B32;
+  --marker: #E6FF3D;
+  --gain: #43C98A;
+  --gain-bg: #12291E;
+  --loss: #FF7266;
+  --loss-bg: #2D1714;
+  --warn: #E0A23A;
+  --warn-bg: #2A2112;
+  --photo: #0B0A08;
+  --on-ink: #12110D;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-sans); font-size: 16px; line-height: 1.6;
+  font-feature-settings: "ss01";
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all; overflow-wrap: break-word;
+  transition: background var(--t-medium) var(--ease-out), color var(--t-medium) var(--ease-out);
+}
+.num, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; box-shadow: 0 0 0 5px var(--marker); border-radius: var(--r-sm); }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 32px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; text-decoration: none; }
+.mark { width: 26px; height: 26px; border-radius: var(--r-md); background: var(--ink); color: var(--on-ink); display: grid; place-items: center; font-family: var(--font-mono); font-size: 12px; font-weight: 600; position: relative; }
+.mark::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 8px; height: 8px; border-radius: 2px; background: var(--marker); border: 2px solid var(--bg); }
+.top nav { display: flex; gap: 4px; margin-left: auto; }
+.top nav a { text-decoration: none; color: var(--muted); font-size: 14px; padding: 8px 10px; border-radius: var(--r-md); }
+.top nav a:hover { color: var(--ink); background: var(--sunken); }
+.theme-btn svg { width: 16px; height: 16px; flex: none; }
+.theme-btn { font: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; }
+
+/* sections */
+section { padding: 88px 0; border-bottom: 1px solid var(--line); }
+.sec-head { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 24px; margin-bottom: 40px; align-items: baseline; }
+.sec-no { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.sec-head h2 { margin: 0; font-size: 28px; line-height: 1.3; letter-spacing: -0.025em; font-weight: 700; }
+.sec-head p { margin: 8px 0 0; color: var(--muted); max-width: 640px; }
+
+/* hero */
+.hero { padding: 96px 0 88px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.hero h1 { font-size: 64px; line-height: 1.08; letter-spacing: -0.04em; font-weight: 750; margin: 16px 0 20px; }
+.hero h1 mark { background: linear-gradient(transparent 58%, var(--marker) 58%, var(--marker) 92%, transparent 92%); color: inherit; padding: 0 2px; }
+.hero .lede { font-size: 19px; line-height: 1.6; color: var(--ink-2); max-width: 520px; margin: 0 0 40px; }
+.principles { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 560px; }
+.principles li { display: grid; grid-template-columns: 48px minmax(0,1fr); padding: 14px 0; border-bottom: 1px solid var(--line); }
+.principles .mono { color: var(--muted); font-size: 13px; padding-top: 2px; }
+.principles b { font-weight: 650; }
+.principles span.d { display: block; color: var(--muted); font-size: 14px; }
+
+/* quote card (signature) */
+.quote { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.quote-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.live { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; }
+.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--gain); }
+.photo { position: relative; background: var(--photo); aspect-ratio: 16 / 10; overflow: hidden; }
+.photo svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.photo .cap { position: absolute; left: 12px; bottom: 10px; font-size: 12px; color: rgba(255,255,255,.55); }
+.bbox { position: absolute; border: 1.5px solid var(--marker); border-radius: 2px; transition: transform 700ms var(--ease-in-out), opacity 500ms var(--ease-out); }
+.bbox.hit { border-width: 2px; background: color-mix(in srgb, var(--marker) 14%, transparent); }
+.bbox .tag { position: absolute; left: -1.5px; top: -22px; white-space: nowrap; background: var(--marker); color: var(--marker-ink); font-family: var(--font-mono); font-size: 11px; font-weight: 600; line-height: 20px; padding: 0 6px; border-radius: 2px 2px 2px 0; }
+.bbox.peeled { transform: translate(28px, -36px) rotate(-9deg); opacity: 0; }
+.quote-body { padding: 22px 18px 18px; }
+.q-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.q-label { font-size: 13px; color: var(--muted); }
+.q-before { font-family: var(--font-mono); font-size: 15px; color: var(--loss); text-decoration: line-through; text-decoration-thickness: 1px; opacity: 0; transition: opacity var(--t-medium); }
+.q-before.show { opacity: 1; }
+.price { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 64px; line-height: 1; font-weight: 600; letter-spacing: -0.04em; margin: 10px 0 6px; transition: color var(--t-medium) var(--ease-out); }
+.price small { font-size: 20px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 6px; }
+.price.is-loss { color: var(--loss); }
+.price.is-gain { color: var(--gain); }
+.receipt-line { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); border-top: 1px dashed var(--line-strong); padding-top: 12px; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.receipt-line b { color: var(--ink); font-weight: 650; }
+.wash { animation: wash 1.4s var(--ease-out); }
+@keyframes wash { 0% { background: var(--surface); } 30% { background: var(--gain-bg); } 100% { background: var(--surface); } }
+.quote-foot { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--bg); }
+
+/* buttons */
+.btn { font: inherit; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: var(--r-md); border: 1px solid transparent; cursor: pointer; transition: background var(--t-short), border-color var(--t-short), transform 80ms; letter-spacing: -0.01em; }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--ink); color: var(--on-ink); }
+.btn-primary:hover { background: var(--ink-2); }
+.btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+.btn-secondary:hover { border-color: var(--ink); }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--sunken); }
+.btn[disabled] { background: var(--sunken); color: var(--muted); cursor: not-allowed; border-color: transparent; }
+.btn-sm { min-height: 34px; font-size: 13px; padding: 0 12px; }
+.btn svg { width: 16px; height: 16px; }
+
+/* type specimen */
+.spec { border-top: 1px solid var(--line); }
+.spec-row { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.spec-meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+.spec-meta b { color: var(--ink); font-weight: 600; display: block; font-family: var(--font-sans); font-size: 14px; }
+.t-display { font-size: 44px; line-height: 1.15; letter-spacing: -0.035em; font-weight: 750; margin: 0; }
+.t-h2 { font-size: 24px; line-height: 1.35; letter-spacing: -0.02em; font-weight: 650; margin: 0; }
+.t-body { font-size: 16px; line-height: 1.65; margin: 0; max-width: 620px; color: var(--ink-2); }
+.t-label { font-size: 13px; font-weight: 550; color: var(--muted); margin: 0; }
+.t-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 36px; letter-spacing: -0.03em; font-weight: 550; margin: 0; display: flex; gap: 32px; flex-wrap: wrap; }
+.t-num .u { font-size: 16px; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+.align-demo { font-variant-numeric: tabular-nums; font-size: 15px; display: inline-grid; grid-template-columns: auto auto; gap: 2px 40px; margin-top: 4px; }
+.align-demo span:nth-child(even) { text-align: right; font-family: var(--font-mono); }
+
+/* colors */
+.swatches { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 24px; }
+.sw-group h3 { font-size: 13px; font-weight: 600; margin: 0 0 10px; color: var(--muted); }
+.sw { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.sw i { width: 44px; height: 44px; border-radius: var(--r-md); border: 1px solid var(--line-strong); display: block; }
+.sw b { font-size: 14px; font-weight: 600; display: block; line-height: 1.3; }
+.sw .mono { font-size: 12px; color: var(--muted); }
+.rules { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; }
+.rule { border-top: 2px solid var(--ink); padding-top: 14px; }
+.rule b { display: block; font-weight: 650; margin-bottom: 4px; }
+.rule p { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* components */
+.comp { display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: 24px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; }
+.panel h3 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 14px; font-weight: 600; }
+.input { font: inherit; font-size: 15px; height: 44px; padding: 0 14px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); width: 100%; }
+.input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--marker) 70%, transparent); }
+.input-wrap { position: relative; }
+.input-wrap .suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.help { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; padding: 3px; background: var(--sunken); border-radius: var(--r-md); }
+.seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--muted); height: 36px; padding: 0 14px; border-radius: var(--r-sm); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 0 var(--line-strong); }
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--r-full); font-size: 13px; font-weight: 600; }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.b-gain { color: var(--gain); background: var(--gain-bg); }
+.b-loss { color: var(--loss); background: var(--loss-bg); }
+.b-warn { color: var(--warn); background: var(--warn-bg); }
+.b-ai { color: var(--marker-ink); background: var(--marker); }
+.b-ai::before { border-radius: 1px; background: var(--marker-ink); }
+.b-neutral { color: var(--ink-2); background: var(--sunken); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chips .k { font-size: 12px; color: var(--muted); margin-right: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--r-full); font-size: 13px; background: var(--surface); }
+.chip svg { width: 13px; height: 13px; color: var(--gain); }
+.chip b { font-weight: 650; }
+.chip .mono { color: var(--muted); font-size: 12px; }
+.note { display: grid; grid-template-columns: 20px minmax(0,1fr); gap: 10px; padding: 12px 14px; border-radius: var(--r-md); font-size: 14px; line-height: 1.55; }
+.note svg { width: 18px; height: 18px; margin-top: 2px; }
+.note + .note { margin-top: 8px; }
+.n-gain { background: var(--gain-bg); color: var(--ink); } .n-gain svg { color: var(--gain); }
+.n-loss { background: var(--loss-bg); color: var(--ink); } .n-loss svg { color: var(--loss); }
+.n-warn { background: var(--warn-bg); color: var(--ink); } .n-warn svg { color: var(--warn); }
+.n-info { background: var(--sunken); color: var(--ink); } .n-info svg { color: var(--muted); }
+p mark, li mark, td mark { background: linear-gradient(transparent 55%, var(--marker) 55%); color: inherit; padding: 0 1px; }
+.gate { border: 1px solid var(--ink); border-radius: var(--r-lg); padding: 18px; display: grid; gap: 14px; }
+.gate-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.gate-top b { font-size: 15px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.check input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; }
+
+/* app shell */
+.app { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: 208px minmax(0,1fr); min-height: 720px; }
+.side { background: var(--bg); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 18px; }
+.side .brand { padding: 4px 8px; font-size: 15px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.steps a { display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 10px; align-items: center; text-decoration: none; min-height: 40px; padding: 0 8px; border-radius: var(--r-md); font-size: 14px; color: var(--muted); }
+.steps a:hover { background: var(--sunken); color: var(--ink); }
+.steps .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--line-strong); }
+.steps .done .n { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.steps .done a { color: var(--ink-2); }
+.steps .cur a { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.steps .cur .n { background: var(--marker); color: var(--marker-ink); border-color: var(--ink); font-weight: 600; }
+.side .meta { margin-top: auto; font-size: 12px; color: var(--muted); padding: 12px 8px 0; border-top: 1px solid var(--line); line-height: 1.6; }
+.side .meta b { color: var(--ink); font-weight: 600; display: block; font-size: 13px; }
+.main { padding: 28px 32px 32px; min-width: 0; }
+.main-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 14px; }
+.main-head h3 { font-size: 24px; letter-spacing: -0.025em; margin: 0; font-weight: 700; line-height: 1.3; }
+.main-head p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.verdict { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: 24px; margin-top: 22px; }
+.verdict .photo { border-radius: var(--r-lg); aspect-ratio: 4 / 3; }
+.v-panel h4 { font-size: 26px; line-height: 1.3; letter-spacing: -0.03em; margin: 12px 0 0; font-weight: 750; }
+.v-panel .price { font-size: 56px; }
+.kv { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 0; margin: 18px 0 0; border-top: 1px solid var(--line); }
+.kv dt, .kv dd { padding: 10px 0; border-bottom: 1px solid var(--line); margin: 0; font-size: 14px; }
+.kv dt { color: var(--muted); padding-right: 24px; }
+.kv dd { text-align: right; font-variant-numeric: tabular-nums; }
+.kv dd.g, .kv dd.l { font-family: var(--font-mono); }
+.kv dd.g { color: var(--gain); font-weight: 600; } .kv dd.l { color: var(--loss); }
+.v-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; }
+.trail { margin-top: 32px; }
+.trail-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.trail-head b { font-size: 15px; }
+.trail-head .meta2 { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.trail table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.trail td { padding: 11px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.trail td:first-child { width: 92px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 13px; }
+.trail td:nth-child(2) { width: 150px; font-weight: 600; }
+.trail td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); white-space: nowrap; padding-left: 16px; }
+.trail .src { color: var(--muted); font-size: 13px; display: block; }
+
+/* ledger table */
+.screens2 { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: 24px; margin-top: 24px; }
+.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ledger th { text-align: left; font-weight: 550; font-size: 12px; color: var(--muted); padding: 0 0 10px; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+.ledger th.r, .ledger td.r { text-align: right; }
+.ledger td { padding: 14px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ledger td + td, .ledger th + th { padding-left: 16px; }
+.ledger .route b { font-weight: 650; display: block; }
+.ledger .route span { color: var(--muted); font-size: 13px; }
+.ledger .num { font-size: 15px; }
+.ledger .g { color: var(--gain); font-weight: 600; } .ledger .l { color: var(--loss); }
+.ledger tr.pick td { background: color-mix(in srgb, var(--marker) 13%, var(--surface)); }
+.ledger tr.pick td:first-child { box-shadow: inset 3px 0 0 var(--ink); padding-left: 14px; }
+.ledger tr.pick .badge { height: 22px; font-size: 12px; margin-left: 6px; vertical-align: 1px; }
+.ledger-foot { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.ledger-foot b { color: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+
+/* receipt */
+.receipt { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; position: relative; }
+.receipt::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 8px; background: radial-gradient(circle at 6px 8px, var(--bg) 5px, transparent 5.5px) 0 0 / 12px 8px repeat-x; }
+.receipt-head { text-align: left; border-bottom: 1px dashed var(--line-strong); padding-bottom: 12px; margin-bottom: 8px; }
+.receipt-head b { font-size: 17px; letter-spacing: -0.02em; }
+.receipt-head .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.ri { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 8px; padding: 10px 0; font-size: 14px; }
+.ri .ic { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; margin-top: 2px; }
+.ri .ok { background: var(--gain-bg); color: var(--gain); }
+.ri .no { background: var(--loss-bg); color: var(--loss); }
+.ri .ask { background: var(--marker); color: var(--marker-ink); }
+.ri .lead { display: flex; align-items: baseline; gap: 6px; }
+.ri .lead span:nth-child(2) { flex: 1; border-bottom: 1.5px dotted var(--line-strong); transform: translateY(-4px); min-width: 16px; }
+.ri .lead b { font-weight: 600; white-space: nowrap; }
+.ri .cite { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--muted); display: block; margin-top: 2px; }
+.ask-box { margin-top: 10px; padding: 14px; border-radius: var(--r-md); background: var(--sunken); }
+.ask-box p { margin: 0 0 10px; font-size: 14px; }
+.receipt-total { border-top: 1px dashed var(--line-strong); margin-top: 8px; padding-top: 12px; display: flex; justify-content: space-between; align-items: baseline; }
+.receipt-total b { font-size: 15px; }
+
+/* tokens */
+.tokens { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; }
+.scale { display: grid; gap: 8px; }
+.scale div { display: grid; grid-template-columns: 56px minmax(0,1fr); align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.scale i { display: block; height: 10px; background: var(--ink); border-radius: 2px; }
+.radii { display: flex; gap: 14px; flex-wrap: wrap; }
+.radii div { text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.radii i { display: block; width: 64px; height: 64px; border: 1.5px solid var(--ink); margin-bottom: 6px; background: var(--surface); }
+.motion-list { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.motion-list li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.motion-list .mono { color: var(--muted); font-size: 12px; }
+
+footer { padding: 40px 0 64px; color: var(--muted); font-size: 13px; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+@media (max-width: 1080px) {
+  .hero .grid > * { grid-column: 1 / -1 !important; }
+  .verdict, .screens2 { grid-template-columns: minmax(0,1fr); }
+  .swatches { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .comp > * { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 760px) {
+  .wrap { padding: 0 18px; }
+  .top nav { display: none; }
+  .theme-btn { margin-left: auto; }
+  .hero h1 { font-size: 42px; }
+  .sec-head, .spec-row { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .app { grid-template-columns: minmax(0,1fr); }
+  .side { display: none; }
+  .main { padding: 20px 16px; }
+  .swatches, .rules, .tokens { grid-template-columns: minmax(0,1fr); }
+  .t-display { font-size: 32px; }
+  .price { font-size: 52px; }
+  .table-scroll { overflow-x: auto; }
+  .ledger { min-width: 560px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 16 16"><path d="M13 8H3M7 4L3 8l4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 7.2v3.8M8 5v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-up" viewBox="0 0 16 16"><path d="M3 11l3.5-3.5 2.5 2.5L13 6M10 6h3v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.2l6.2 11H1.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6.5v3M8 11.4v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+
+    <!-- 시연용 현장 사진 일러스트: 압축 PP 베일 더미 -->
+    <symbol id="pile" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <filter id="grain" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/>
+          <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0"/>
+          <feComposite in2="SourceGraphic" operator="in"/>
+          <feBlend in="SourceGraphic" mode="multiply"/>
+        </filter>
+        <pattern id="strap" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-4)">
+          <rect width="14" height="14" fill="transparent"/>
+          <path d="M0 3h14M0 9h14" stroke="#000" stroke-opacity=".16" stroke-width="2"/>
+        </pattern>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4840"/><stop offset="1" stop-color="#2a2924"/></linearGradient>
+        <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b574c"/><stop offset="1" stop-color="#3a372f"/></linearGradient>
+      </defs>
+      <g filter="url(#grain)">
+        <rect width="800" height="520" fill="url(#sky)"/>
+        <rect y="360" width="800" height="160" fill="url(#floor)"/>
+        <!-- back row bales -->
+        <g transform="rotate(-2 400 260)">
+          <rect x="88" y="128" width="210" height="150" rx="8" fill="#8d959b"/>
+          <rect x="88" y="128" width="210" height="150" rx="8" fill="url(#strap)"/>
+          <rect x="304" y="112" width="228" height="164" rx="8" fill="#a9b1b4"/>
+          <rect x="304" y="112" width="228" height="164" rx="8" fill="url(#strap)"/>
+          <rect x="538" y="136" width="196" height="142" rx="8" fill="#7f8a86"/>
+          <rect x="538" y="136" width="196" height="142" rx="8" fill="url(#strap)"/>
+        </g>
+        <!-- front row bales -->
+        <g transform="rotate(1.5 400 380)">
+          <rect x="40" y="270" width="250" height="170" rx="8" fill="#b4b8b0"/>
+          <rect x="40" y="270" width="250" height="170" rx="8" fill="url(#strap)"/>
+          <rect x="296" y="262" width="262" height="182" rx="8" fill="#9aa4a8"/>
+          <rect x="296" y="262" width="262" height="182" rx="8" fill="url(#strap)"/>
+          <rect x="564" y="276" width="214" height="164" rx="8" fill="#c2c0b4"/>
+          <rect x="564" y="276" width="214" height="164" rx="8" fill="url(#strap)"/>
+        </g>
+        <!-- tape & labels -->
+        <g fill="#c9a160">
+          <rect x="350" y="300" width="70" height="16" rx="2" transform="rotate(-12 385 308)"/>
+          <rect x="410" y="350" width="54" height="14" rx="2" transform="rotate(8 437 357)"/>
+          <rect x="120" y="318" width="60" height="14" rx="2" transform="rotate(-6 150 325)"/>
+        </g>
+        <g fill="#efeee6"><rect x="470" y="306" width="40" height="28" rx="2" transform="rotate(5 490 320)"/><rect x="618" y="180" width="34" height="24" rx="2"/></g>
+        <!-- metal scrap -->
+        <path d="M640 330l40-12 18 26-30 16z" fill="#d8dcdf"/><path d="M640 330l40-12 4 6-38 12z" fill="#ffffff" fill-opacity=".5"/>
+        <!-- shadow -->
+        <rect y="440" width="800" height="80" fill="#000" fill-opacity=".18"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark">R:</span>Re:Source AI</a>
+    <nav aria-label="미리보기 목차">
+      <a href="#type">서체</a><a href="#color">색</a><a href="#comp">컴포넌트</a><a href="#screens">화면</a><a href="#tokens">토큰</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="화면 모드 전환"><svg><use href="#i-moon"/></svg><span>어둡게</span></button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap grid">
+    <div style="grid-column: 1 / span 6">
+      <div class="eyebrow">Design System v1 · 2026-11-09</div>
+      <h1>산업 원장,<br>쓰레기에 <mark>시세</mark>를<br>매기는 화면</h1>
+      <p class="lede">종이와 먹, 검사관의 형광펜, 시세판의 고정폭 숫자로 만듭니다. 폐기물 더미 하나하나를 값이 매겨지는 상품처럼 다룹니다.</p>
+      <ol class="principles">
+        <li><span class="mono">01</span><div><b>돈이 먼저, 탄소는 근거</b><span class="d">화면의 절정은 손익 부호가 0을 넘는 순간입니다.</span></div></li>
+        <li><span class="mono">02</span><div><b>노란색은 AI가 표시한 것</b><span class="d">바운딩박스, 인용 조항, 핵심 수치에만 형광펜을 씁니다.</span></div></li>
+        <li><span class="mono">03</span><div><b>숫자는 시세처럼</b><span class="d">금액·중량·탄소는 모두 고정폭으로, 부호와 단위를 함께 씁니다.</span></div></li>
+      </ol>
+    </div>
+    <div style="grid-column: 8 / span 5; align-self: center">
+      <div class="quote" data-flip>
+        <div class="quote-head"><span>판정 · PP 압축품 · 월 800kg</span><span class="live">녹산단지 시세</span></div>
+        <div class="photo">
+          <svg role="img" aria-label="압축 플라스틱 베일 더미 사진. 테이프와 라벨이 붙어 있음"><use href="#pile"/></svg>
+          <div class="bbox" style="left:6%;top:22%;width:88%;height:64%"><span class="tag">PP 압축품 0.94</span></div>
+          <div class="bbox hit" data-tape style="left:40%;top:54%;width:20%;height:15%"><span class="tag">테이프 12%</span></div>
+          <span class="cap">현장 사진 · 시연용 일러스트</span>
+        </div>
+        <div class="quote-body">
+          <div class="q-row"><span class="q-label">kg당 손익</span><span class="q-before" data-before>−250 원/kg</span></div>
+          <div class="price is-loss" data-price aria-live="polite"><span data-val>−250</span><small>원/kg</small></div>
+          <div class="receipt-line"><span>조치 <b>테이프·라벨 제거</b></span><span>차액 <b class="num">+550</b> 원/kg</span><span>월 <b class="num">+440,000</b>원</span></div>
+        </div>
+        <div class="quote-foot">
+          <span class="badge b-ai">AI 판정</span>
+          <button class="btn btn-ghost btn-sm" type="button" data-replay><svg><use href="#i-replay"/></svg>테이프 떼기 다시 보기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TYPE -->
+<section id="type">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">01 / 서체</span><div><h2>Wanted Sans 하나와 Geist Mono 하나</h2><p>글은 Wanted Sans 가변 글꼴 하나로 굵기만 바꿔 위계를 만듭니다. 숫자는 Geist Mono로 고정폭을 맞춰, 표에서 자릿수가 세로로 정렬되게 합니다.</p></div></div>
+    <div class="spec">
+      <div class="spec-row"><div class="spec-meta"><b>Display</b>Wanted Sans 750<br>44 / 1.15 · −3.5%</div><p class="t-display">테이프를 떼면, 이 더미는 수익이 됩니다.</p></div>
+      <div class="spec-row"><div class="spec-meta"><b>Heading</b>Wanted Sans 650<br>24 / 1.35 · −2%</div><p class="t-h2">녹산단지 안 3개사와 묶으면 최소 수거 물량 2톤을 넘깁니다</p></div>
+      <div class="spec-row"><div class="spec-meta"><b>Body</b>Wanted Sans 400<br>16 / 1.65</div><p class="t-body">금속 혼입 3%는 수거 업체가 현장에서 선별할 수 있는 수준입니다. 다만 5%를 넘으면 매입 거절 기준에 걸리므로, 다음 배출 때도 같은 위치에서 다시 촬영해 비율을 확인합니다.</p></div>
+      <div class="spec-row"><div class="spec-meta"><b>Label</b>Wanted Sans 550<br>13 / 1.4</div><p class="t-label">월 비용 (−) / 수익 (+) · 건조 중량 기준</p></div>
+      <div class="spec-row"><div class="spec-meta"><b>Figures</b>Geist Mono 550<br>tabular-nums</div>
+        <div>
+          <p class="t-num"><span>+195,000<span class="u">원</span></span><span>−1.20<span class="u">tCO₂e</span></span><span>2,410<span class="u">kg</span></span></p>
+          <div class="align-demo" aria-label="고정폭 숫자 정렬 예시"><span>A. 묶음 재활용</span><span style="color:var(--gain)">+195,000</span><span>B. 단독 재활용</span><span style="color:var(--gain)">+52,000</span><span>C. 현행 유지</span><span style="color:var(--loss)">−200,000</span><span>D. 매립</span><span style="color:var(--loss)">−184,000</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COLOR -->
+<section id="color">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">02 / 색</span><div><h2>재생지, 먹, 형광펜. 손익에만 색을 씁니다</h2><p>브랜드 색은 따로 없습니다. 주요 버튼은 먹색이고, 초록은 이익일 때만, 빨강은 손실이나 막힌 조건일 때만 나타납니다.</p></div></div>
+    <div class="swatches">
+      <div class="sw-group"><h3>바탕</h3>
+        <div class="sw"><i style="background:var(--bg)"></i><div><b>재생지</b><span class="mono">#F2F0EA · bg</span></div></div>
+        <div class="sw"><i style="background:var(--surface)"></i><div><b>표면</b><span class="mono">#FBFAF6 · surface</span></div></div>
+        <div class="sw"><i style="background:var(--sunken)"></i><div><b>들어간 면</b><span class="mono">#E9E6DE · sunken</span></div></div>
+        <div class="sw"><i style="background:var(--line)"></i><div><b>선</b><span class="mono">#DEDBD2 · line</span></div></div>
+      </div>
+      <div class="sw-group"><h3>먹</h3>
+        <div class="sw"><i style="background:var(--ink)"></i><div><b>먹</b><span class="mono">#16150F · ink · 16:1</span></div></div>
+        <div class="sw"><i style="background:var(--ink-2)"></i><div><b>본문 먹</b><span class="mono">#3A3830 · ink-2</span></div></div>
+        <div class="sw"><i style="background:var(--muted)"></i><div><b>보조 글씨</b><span class="mono">#6B675E · muted · 4.9:1</span></div></div>
+      </div>
+      <div class="sw-group"><h3>AI 표시</h3>
+        <div class="sw"><i style="background:var(--marker)"></i><div><b>형광펜</b><span class="mono">#E6FF3D · marker</span></div></div>
+        <div class="sw"><i style="background:var(--photo)"></i><div><b>사진 바탕</b><span class="mono">#2B2A24 · photo</span></div></div>
+      </div>
+      <div class="sw-group"><h3>손익·상태</h3>
+        <div class="sw"><i style="background:var(--gain)"></i><div><b>이익 (+)</b><span class="mono">#0C7148 · gain · 5.0:1</span></div></div>
+        <div class="sw"><i style="background:var(--loss)"></i><div><b>손실 (−)</b><span class="mono">#B5332A · loss · 5.1:1</span></div></div>
+        <div class="sw"><i style="background:var(--warn)"></i><div><b>확인 필요</b><span class="mono">#9A5B00 · warn · 4.8:1</span></div></div>
+      </div>
+    </div>
+    <div class="rules">
+      <div class="rule"><b>형광펜은 버튼에 쓰지 않습니다</b><p>노란색이 보이면 언제나 "AI가 짚은 근거"라는 뜻이 되도록 의미를 하나로 고정합니다.</p></div>
+      <div class="rule"><b>색만으로 말하지 않습니다</b><p>손익은 항상 +/− 부호와 "수익·지출" 라벨을 함께 씁니다. 색각 이상 사용자도 같은 정보를 읽습니다.</p></div>
+      <div class="rule"><b>초록은 브랜드가 아닙니다</b><p>초록은 이익이 생긴 숫자에만 나타납니다. 그래서 초록이 보이는 순간 자체가 의미를 가집니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="comp">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">03 / 컴포넌트</span><div><h2>화면마다 1차 행동은 하나</h2><p>먹색 버튼은 한 화면에 하나만 둡니다. 나머지 행동은 테두리 버튼이나 텍스트 버튼으로 낮춥니다.</p></div></div>
+    <div class="comp">
+      <div class="panel" style="grid-column: span 6">
+        <h3>버튼</h3>
+        <div class="row">
+          <button class="btn btn-primary" type="button">규정 검토로<svg><use href="#i-arrow"/></svg></button>
+          <button class="btn btn-secondary" type="button">수량 다시 입력</button>
+          <button class="btn btn-ghost" type="button"><svg><use href="#i-back"/></svg>식별 결과</button>
+          <button class="btn btn-primary" type="button" disabled>식별 시작</button>
+        </div>
+        <h3 style="margin-top:28px">상태 배지</h3>
+        <div class="row">
+          <span class="badge b-gain">재활용 가능</span>
+          <span class="badge b-loss">매입 거절</span>
+          <span class="badge b-warn">확인 필요</span>
+          <span class="badge b-ai">AI 판정</span>
+          <span class="badge b-neutral">초안</span>
+        </div>
+        <h3 style="margin-top:28px">지금까지 확정</h3>
+        <div class="chips">
+          <span class="k">확정</span>
+          <span class="chip"><svg><use href="#i-check"/></svg>품목 <b>PP 압축품</b><span class="mono">780kg</span></span>
+          <span class="chip"><svg><use href="#i-check"/></svg>판정 <b>재활용 가능</b><span class="mono">+300/kg</span></span>
+        </div>
+      </div>
+      <div class="panel" style="grid-column: span 6">
+        <h3>입력과 되묻기</h3>
+        <div class="field">
+          <label for="qty">한 달에 배출하는 양</label>
+          <div class="input-wrap"><input class="input num" id="qty" value="800" inputmode="numeric"><span class="suffix">kg / 월</span></div>
+          <span class="help">사진으로 추정한 값은 약 780kg입니다. 실제 값과 다르면 고쳐 주세요.</span>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>보관 장소</label>
+          <div class="seg" role="group" aria-label="보관 장소"><button type="button" aria-pressed="false">실내</button><button type="button" aria-pressed="true">야외·지붕 있음</button><button type="button" aria-pressed="false">야외·노출</button></div>
+        </div>
+        <h3 style="margin-top:28px">본문 속 AI 표시</h3>
+        <p class="t-body" style="font-size:15px">이물질 비율 <mark>12%</mark>는 업체 매입 기준 <mark>10%</mark>를 넘습니다. 테이프만 제거하면 기준을 충족합니다.</p>
+      </div>
+      <div class="panel" style="grid-column: span 7">
+        <h3>안내</h3>
+        <div class="note n-gain"><svg><use href="#i-up"/></svg><div>묶음 수거로 바꾸면 월 <b class="num">+395,000원</b>이 개선됩니다.</div></div>
+        <div class="note n-loss"><svg><use href="#i-alert"/></svg><div>(주)동남환경은 PP 압축품 허가 품목이 없어 후보에서 제외했습니다.</div></div>
+        <div class="note n-warn"><svg><use href="#i-alert"/></svg><div>이물질 분석표가 없어 순환자원 인정 신청은 분석 후에 가능합니다.</div></div>
+        <div class="note n-info"><svg><use href="#i-info"/></svg><div>외부 발송은 마지막 단계에서 담당자가 승인해야 이루어집니다.</div></div>
+      </div>
+      <div class="panel" style="grid-column: span 5">
+        <h3>승인 게이트</h3>
+        <div class="gate">
+          <div class="gate-top"><b>견적 요청서 3건 발송</b><span class="badge b-neutral">승인 대기</span></div>
+          <label class="check"><input type="checkbox" checked>(주)녹산리사이클 · 기업 A · 기업 B에 발송합니다.</label>
+          <label class="check"><input type="checkbox">공동처리 신고서 초안 내용을 확인했습니다.</label>
+          <button class="btn btn-primary" type="button" style="width:100%">승인 후 견적 요청 발송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section id="screens">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">04 / 화면</span><div><h2>실제 화면에 적용한 모습</h2><p>판정 화면, 비용·탄소 비교표, 규정 체크리스트입니다. 숫자는 모두 시연용 가정값입니다.</p></div></div>
+
+    <div class="app">
+      <aside class="side">
+        <a class="brand" href="#screens"><span class="mark">R:</span>Re:Source AI</a>
+        <ol class="steps">
+          <li class="done"><a href="#screens"><span class="n">1</span>업로드</a></li>
+          <li class="done"><a href="#screens"><span class="n">2</span>식별 결과</a></li>
+          <li class="cur"><a href="#screens" aria-current="step"><span class="n">3</span>판정</a></li>
+          <li><a href="#screens"><span class="n">4</span>규정 검토</a></li>
+          <li><a href="#screens"><span class="n">5</span>묶음 수거 매칭</a></li>
+          <li><a href="#screens"><span class="n">6</span>비용·탄소 비교</a></li>
+          <li><a href="#screens"><span class="n">7</span>최적안·승인</a></li>
+          <li><a href="#screens"><span class="n">8</span>대시보드</a></li>
+        </ol>
+        <div class="meta"><b>(주)한빛정밀 사출공장</b>녹산국가산업단지<br>세션 <span class="mono">RS-1109-042</span></div>
+      </aside>
+      <div class="main">
+        <div class="main-head">
+          <div><h3>재활용 가능성 판정</h3><p>PP 압축품 · 월 800kg · 야외 보관 2주</p></div>
+          <span class="badge b-gain">재활용 가능</span>
+        </div>
+        <div class="chips"><span class="k">지금까지 확정</span><span class="chip"><svg><use href="#i-check"/></svg>품목 <b>PP 압축품</b><span class="mono">780kg</span></span><span class="chip"><svg><use href="#i-check"/></svg>보관 <b>야외 2주</b></span></div>
+
+        <div class="verdict" data-flip>
+          <div class="photo">
+            <svg role="img" aria-label="압축 플라스틱 베일 더미 사진. 이물질 위치가 표시됨"><use href="#pile"/></svg>
+            <div class="bbox" style="left:5%;top:22%;width:90%;height:64%"><span class="tag">PP 압축품 0.94</span></div>
+            <div class="bbox hit" data-tape style="left:40%;top:54%;width:20%;height:15%"><span class="tag">테이프 12%</span></div>
+            <div class="bbox hit" style="left:79%;top:60%;width:10%;height:10%"><span class="tag">금속 3%</span></div>
+            <span class="cap">프레임 24장 · ByteTrack 추적 · 시연용 일러스트</span>
+          </div>
+          <div class="v-panel">
+            <span class="badge b-ai">권고 작업 1건</span>
+            <h4>테이프와 라벨을 떼면, 이 더미는 수익이 됩니다.</h4>
+            <div class="q-row" style="margin-top:18px"><span class="q-label">kg당 손익</span><span class="q-before" data-before>−250 원/kg</span></div>
+            <div class="price is-loss" data-price aria-live="polite"><span data-val>−250</span><small>원/kg</small></div>
+            <dl class="kv">
+              <dt>작업량</dt><dd>1인 · 3시간 / 월</dd>
+              <dt>작업 비용</dt><dd class="l">−45,000원</dd>
+              <dt>처리비 절감 + 매각 수익</dt><dd class="g">+440,000원</dd>
+              <dt>월 순효과</dt><dd class="g">+395,000원</dd>
+            </dl>
+            <div class="v-actions">
+              <button class="btn btn-ghost btn-sm" type="button" data-replay><svg><use href="#i-replay"/></svg>다시 보기</button>
+              <button class="btn btn-primary" type="button">규정 검토로<svg><use href="#i-arrow"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trail">
+          <div class="trail-head"><b>판단 근거</b><span class="meta2">에이전트 3개 · 4.2초</span></div>
+          <table>
+            <tr><td>14:02:11</td><td>① 식별·분류</td><td>프레임 24장에서 PP 압축품을 탐지했습니다. 테이프 12%, 금속 3%.<span class="src">Azure ML · RT-DETR + ByteTrack</span></td><td>신뢰도 0.94</td></tr>
+            <tr><td>14:02:13</td><td>② 가능성 판단</td><td>이물질 12%는 업체 매입 기준 10%를 넘습니다. 테이프 제거 시 기준을 충족합니다.<span class="src">가격조사 2026-10 · 부산권역 PP 압축품 300원/kg</span></td><td>규칙 3건</td></tr>
+            <tr><td>14:02:15</td><td>조정</td><td>수량과 보관 기간을 담당자에게 되물었습니다.<span class="src">답변: 월 800kg, 야외 2주</span></td><td>되묻기 1건</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="screens2">
+      <div class="panel">
+        <h3>⑤ 비용·탄소 비교 · 월 800kg 기준</h3>
+        <div class="table-scroll">
+          <table class="ledger">
+            <thead><tr><th>처리 경로</th><th class="r">월 손익</th><th class="r">순 탄소 tCO₂e</th><th class="r">KAU 환산</th></tr></thead>
+            <tbody>
+              <tr class="pick"><td class="route"><b>A. 묶음 재활용<span class="badge b-ai">추천</span></b><span>제거 → 3개사 묶음 → (주)녹산리사이클</span></td><td class="r num g">+195,000</td><td class="r num g">−1.20</td><td class="r num">+10,800</td></tr>
+              <tr><td class="route"><b>B. 단독 재활용</b><span>최소 물량 미달 · 대기 3주 이상</span></td><td class="r num g">+52,000</td><td class="r num g">−1.05</td><td class="r num">+9,450</td></tr>
+              <tr><td class="route"><b>C. 현행 유지 (혼합 소각)</b><span>변경 없음</span></td><td class="r num l">−200,000</td><td class="r num l">+0.62</td><td class="r num">−5,580</td></tr>
+              <tr><td class="route"><b>D. 매립</b><span>매립 가능 지역까지 운송</span></td><td class="r num l">−184,000</td><td class="r num l">+0.41</td><td class="r num">−3,690</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ledger-foot"><span>A와 C의 차이는 월 <b>395,000원</b>, 연 <b>4,740,000원</b>입니다.</span><span>신재 PP 대비 · KAU 9,000원/t (가정)</span></div>
+      </div>
+
+      <div class="receipt">
+        <div class="receipt-head"><b>③ 규정 검토</b><span class="sub">순환경제사회 전환 촉진법 · 조항 4건 인용</span></div>
+        <div class="ri"><span class="ic no">✕</span><div><div class="lead"><span>순환자원 지정 품목</span><span></span><b>해당 없음</b></div><span class="cite">「순환경제사회 전환 촉진법」 제21조 · 지정 고시 별표 1</span></div></div>
+        <div class="ri"><span class="ic ok">✓</span><div><div class="lead"><span>순환자원 인정 신청</span><span></span><b>가능</b></div><span class="cite">「순환경제사회 전환 촉진법」 제20조 제1항</span></div></div>
+        <div class="ri"><span class="ic ok">✓</span><div><div class="lead"><span>공동처리</span><span></span><b>가능</b></div><span class="cite">「폐기물관리법」 제18조 제5항</span></div></div>
+        <div class="ri"><span class="ic ask">?</span><div><div class="lead"><span>유해물질 기준</span><span></span><b>정보 부족</b></div><span class="cite">시행령 제12조 · 이물질 분석표 필요</span></div></div>
+        <div class="ask-box">
+          <p>이물질 분석표를 가지고 계신가요?</p>
+          <div class="row"><button class="btn btn-secondary btn-sm" type="button">PDF 올리기</button><button class="btn btn-ghost btn-sm" type="button">없음</button></div>
+        </div>
+        <div class="receipt-total"><b>결론</b><span class="badge b-warn">폐기물로 처리 · 인정은 분석 후</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOKENS -->
+<section id="tokens">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">05 / 토큰</span><div><h2>간격, 모서리, 모션</h2><p>4px 단위로 간격을 정합니다. 모서리는 작게 유지하고, 모션은 상태 변화를 설명할 때만 씁니다.</p></div></div>
+    <div class="tokens">
+      <div class="panel"><h3>간격 (4px 단위)</h3>
+        <div class="scale">
+          <div>2xs 2<i style="width:2px"></i></div><div>xs 4<i style="width:4px"></i></div><div>sm 8<i style="width:8px"></i></div><div>md 16<i style="width:16px"></i></div><div>lg 24<i style="width:24px"></i></div><div>xl 32<i style="width:32px"></i></div><div>2xl 48<i style="width:48px"></i></div><div>3xl 64<i style="width:64px"></i></div><div>4xl 88<i style="width:88px"></i></div>
+        </div>
+      </div>
+      <div class="panel"><h3>모서리</h3>
+        <div class="radii"><div><i style="border-radius:4px"></i>sm 4</div><div><i style="border-radius:6px"></i>md 6</div><div><i style="border-radius:10px"></i>lg 10</div><div><i style="border-radius:999px;width:64px"></i>full</div></div>
+        <p class="help" style="margin-top:14px">버튼·입력 6, 패널 10, 앱 틀 14. 배지와 칩만 둥글게 씁니다.</p>
+      </div>
+      <div class="panel"><h3>모션</h3>
+        <ul class="motion-list">
+          <li><span>호버·포커스</span><span class="mono">180ms ease-out</span></li>
+          <li><span>패널·테마 전환</span><span class="mono">300ms ease-out</span></li>
+          <li><span>테이프 떼기 (시그니처)</span><span class="mono">1100ms 1회</span></li>
+          <li><span>모션 감소 설정</span><span class="mono">즉시 결과값</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>Re:Source AI · 디자인 시스템 v1 미리보기 · /design-consultation</span><span>숫자와 조항 번호는 시연용 가정값입니다.</span></div></footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('themeBtn');
+  var params = new URLSearchParams(location.search);
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    btn.querySelector('use').setAttribute('href', t === 'dark' ? '#i-sun' : '#i-moon');
+    btn.querySelector('span').textContent = t === 'dark' ? '밝게' : '어둡게';
+  }
+  setTheme(params.get('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  btn.addEventListener('click', function () { setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
+
+  document.querySelectorAll('.seg').forEach(function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+  });
+
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || params.has('still');
+  var FROM = -250, TO = 300, DUR = 1100;
+  function fmt(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('ko-KR'); }
+  function ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function run(card) {
+    var val = card.querySelector('[data-val]');
+    var price = card.querySelector('[data-price]');
+    var tape = card.querySelector('[data-tape]');
+    var before = card.querySelector('[data-before]');
+    var body = card.querySelector('.quote-body') || card.querySelector('.v-panel');
+    function done() {
+      val.textContent = fmt(TO);
+      price.classList.remove('is-loss'); price.classList.add('is-gain');
+      tape.classList.add('peeled'); before.classList.add('show');
+    }
+    if (reduce) { done(); return; }
+    tape.classList.remove('peeled'); before.classList.remove('show');
+    price.classList.add('is-loss'); price.classList.remove('is-gain');
+    val.textContent = fmt(FROM);
+    setTimeout(function () {
+      tape.classList.add('peeled');
+      var start = performance.now();
+      function step(now) {
+        var t = Math.min(1, (now - start) / DUR);
+        var n = Math.round((FROM + (TO - FROM) * ease(t)) / 10) * 10;
+        val.textContent = fmt(n);
+        if (n > 0 && price.classList.contains('is-loss')) {
+          price.classList.remove('is-loss'); price.classList.add('is-gain');
+          if (body) { body.classList.remove('wash'); void body.offsetWidth; body.classList.add('wash'); }
+        }
+        if (t < 1) requestAnimationFrame(step); else done();
+      }
+      requestAnimationFrame(step);
+    }, 450);
+  }
+
+  var cards = document.querySelectorAll('[data-flip]');
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } });
+  }, { threshold: 0.5 });
+  cards.forEach(function (c) {
+    io.observe(c);
+    var r = c.querySelector('[data-replay]'); if (r) r.addEventListener('click', function () { run(c); });
+    var tape = c.querySelector('[data-tape]'); if (tape) tape.addEventListener('click', function () { run(c); });
+  });
+})();
+</script>
+</body>
+</html>

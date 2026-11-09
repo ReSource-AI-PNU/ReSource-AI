@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re:Source AI · 사용자 흐름 목업 v2</title>
+<!-- Pretendard 가변 글꼴. 오프라인이면 아래 폴백 글꼴로 자동 대체된다. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f3f3f0; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --border-strong:rgba(11,11,11,.18);
+    --blue:#2a78d6; --blue-soft:#e4effb; --blue-ink:#184f95;
+    --red:#e34948; --orange:#eb6834; --aqua:#1baf7a;
+    --good:#0ca30c; --good-ink:#006300; --good-soft:#e6f6e6;
+    --warn:#fab219; --warn-ink:#6b4300; --warn-soft:#fff3d6;
+    --crit:#d03b3b; --crit-ink:#8a1f1f; --crit-soft:#fde3e3;
+    --r-sm:4px; --r-md:8px; --r-lg:12px; --r-full:9999px;
+    --shadow:0 1px 2px rgba(0,0,0,.04);
+    --focus:0 0 0 3px #fff, 0 0 0 5px var(--blue);
+    --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.2);
+      --blue:#3987e5; --blue-soft:#17304f; --blue-ink:#9ec5f4;
+      --red:#e66767; --orange:#d95926; --aqua:#199e70;
+      --good-ink:#5ed35e; --good-soft:#153615; --warn-ink:#ffd27a; --warn-soft:#3a2d0c; --crit-ink:#ff9a9a; --crit-soft:#3d1515;
+      --focus:0 0 0 3px var(--surface), 0 0 0 5px var(--blue);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.2);
+    --blue:#3987e5; --blue-soft:#17304f; --blue-ink:#9ec5f4;
+    --red:#e66767; --orange:#d95926; --aqua:#199e70;
+    --good-ink:#5ed35e; --good-soft:#153615; --warn-ink:#ffd27a; --warn-soft:#3a2d0c; --crit-ink:#ff9a9a; --crit-soft:#3d1515;
+    --focus:0 0 0 3px var(--surface), 0 0 0 5px var(--blue);
+  }
+  *{box-sizing:border-box}
+  html{font-family:var(--font)}
+  body{margin:0;background:var(--page);color:var(--ink);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font:inherit;cursor:pointer;color:inherit}
+  :focus-visible{outline:none;box-shadow:var(--focus)}
+  svg.ic{width:1em;height:1em;vertical-align:-0.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  /* ---------- 셸 ---------- */
+  .shell{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+  .side{background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:10px;margin:4px 8px 20px}
+  .brand .logo{width:36px;height:36px;border-radius:var(--r-md);background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .brand b{font-size:16px;letter-spacing:-.01em}
+  .brand small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+  .steps{list-style:none;margin:0;padding:0}
+  .steps button{width:100%;display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 10px;border:0;border-radius:var(--r-md);background:none;color:var(--ink2);font-size:14.5px;text-align:left}
+  .steps button:hover{background:var(--surface-2)}
+  .steps .n{width:24px;height:24px;border-radius:var(--r-full);border:1.5px solid var(--axis);display:grid;place-items:center;font-size:12px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+  .steps li.done .n{background:var(--good);border-color:var(--good);color:#fff}
+  .steps li.done .n span{display:none}
+  .steps li.done .n svg{display:block;stroke:#fff;width:12px;height:12px}
+  .steps li .n svg{display:none}
+  .steps li.active button{background:var(--blue-soft);color:var(--ink);font-weight:600}
+  .steps li.active .n{background:var(--blue);border-color:var(--blue);color:#fff}
+  .side .scenario{margin-top:auto;padding:12px;background:var(--surface-2);border-radius:var(--r-md);font-size:13px;color:var(--ink2);line-height:1.55}
+  .side .scenario b{display:block;color:var(--ink);margin-bottom:2px}
+  .theme{margin-top:10px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink2)}
+  .theme button{min-height:36px;padding:0 10px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);font-size:13px;display:inline-flex;align-items:center;gap:6px}
+  .main{padding:24px 36px 72px;max-width:1140px}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
+  .topbar h1{font-size:22px;margin:0;letter-spacing:-.01em;text-wrap:balance}
+  .topbar .sub{color:var(--ink2);font-size:14.5px;margin-top:2px}
+  .topbar .status{flex:none;padding-top:4px}
+
+  /* 누적 세션 요약 */
+  .ctx{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 18px;min-height:30px}
+  .ctx .lbl{font-size:12.5px;color:var(--muted);margin-right:2px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:var(--r-full);font-size:13px;background:var(--surface);border:1px solid var(--border);color:var(--ink2)}
+  .chip b{color:var(--ink);font-weight:600}
+  .chip.pending{border-style:dashed;color:var(--muted)}
+  .chip svg{color:var(--good)}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--surface);white-space:nowrap}
+  .pill.blue{background:var(--blue-soft);border-color:transparent;color:var(--blue-ink)}
+  .pill.good{background:var(--good-soft);color:var(--good-ink);border-color:transparent}
+  .pill.warn{background:var(--warn-soft);color:var(--warn-ink);border-color:transparent}
+  .pill.crit{background:var(--crit-soft);color:var(--crit-ink);border-color:transparent}
+  .pill.gray{background:var(--surface-2);color:var(--ink2);border-color:transparent}
+
+  .screen{display:none}
+  .screen.active{display:block;animation:fade .22s cubic-bezier(.16,1,.3,1)}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.screen.active{animation:none} *{transition-duration:0s !important}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{font-size:16px;margin:0 0 12px;letter-spacing:-.01em}
+  .card h3{font-size:13.5px;margin:16px 0 6px;color:var(--ink2);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--r-md);font-weight:600;font-size:15px;transition:background-color .15s,border-color .15s,transform .05s}
+  .btn:hover{background:var(--surface-2)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn.primary:hover{background:var(--blue-ink);border-color:var(--blue-ink)}
+  .btn.quiet{border-color:transparent;background:transparent;color:var(--ink2)}
+  .btn.quiet:hover{background:var(--surface-2);color:var(--ink)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px}
+  .muted{color:var(--muted);font-size:13.5px}
+  .kv{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:15px;margin:0}
+  .kv dt{color:var(--ink2)} .kv dd{margin:0}
+  .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.t{width:100%;border-collapse:collapse;font-size:14.5px}
+  table.t th,table.t td{padding:10px 10px;border-bottom:1px solid var(--grid);text-align:left;vertical-align:top}
+  table.t th{color:var(--ink2);font-weight:600;font-size:13px}
+  table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.t tr.rec td{background:var(--blue-soft)}
+  table.t tr.rec td:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm)} table.t tr.rec td:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0}
+  .neg{color:var(--crit-ink);font-weight:700;font-variant-numeric:tabular-nums}
+  .pos{color:var(--good-ink);font-weight:700;font-variant-numeric:tabular-nums}
+  .note{background:var(--surface-2);padding:10px 14px;border-radius:var(--r-md);font-size:14px;color:var(--ink2);display:flex;gap:8px;align-items:flex-start}
+  .note svg{margin-top:3px;color:var(--muted)}
+  .agent{display:flex;gap:12px;align-items:flex-start;background:var(--blue-soft);border-radius:var(--r-lg);padding:12px 14px;margin:0 0 10px}
+  .agent .av{width:30px;height:30px;border-radius:var(--r-full);background:var(--blue);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+  .agent p{margin:0 0 6px;font-size:15px}
+  .field{display:grid;gap:5px;margin:10px 0}
+  .field label{font-size:13.5px;color:var(--ink2)}
+  .field input,.field select{font:inherit;min-height:44px;padding:8px 12px;border:1px solid var(--axis);border-radius:var(--r-md);background:var(--surface);color:var(--ink)}
+  .field input:focus-visible,.field select:focus-visible{border-color:var(--blue)}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--grid);font-size:15px}
+  .check:last-child{border-bottom:0}
+  .check .ic-wrap{width:22px;height:22px;border-radius:var(--r-full);display:grid;place-items:center;flex:none;margin-top:1px}
+  .ic-wrap.ok{background:var(--good);color:#fff} .ic-wrap.no{background:var(--crit);color:#fff} .ic-wrap.q{background:var(--warn);color:#2a1c00}
+  .ic-wrap svg{width:13px;height:13px;stroke-width:2.5}
+  details.cite{margin:6px 0 0 0;font-size:13.5px}
+  details.cite summary{cursor:pointer;color:var(--blue-ink);min-height:28px;display:inline-flex;align-items:center;gap:4px}
+  details.cite blockquote{margin:6px 0;padding:10px 12px;background:var(--surface-2);border-radius:var(--r-md);color:var(--ink2)}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow)}
+  .tile .lbl{font-size:13.5px;color:var(--ink2)} .tile .val{font-size:28px;font-weight:700;margin-top:2px;letter-spacing:-.02em}
+  .tile .delta{font-size:13px;color:var(--good-ink);margin-top:2px;display:flex;align-items:center;gap:4px}
+  .tile.neg{background:var(--crit-soft);border-color:transparent} .tile.posb{background:var(--good-soft);border-color:transparent}
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--grid);margin-bottom:12px}
+  .tabs button{border:0;background:none;min-height:44px;padding:0 14px;border-bottom:2px solid transparent;color:var(--ink2);font-weight:600;margin-bottom:-1px}
+  .tabs button:hover{color:var(--ink)}
+  .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--blue)}
+  .doc{background:var(--surface);border:1px solid var(--grid);border-radius:var(--r-md);padding:22px 26px;font-size:14px;min-height:260px}
+  .doc h4{margin:0 0 12px;font-size:16px;text-align:center}
+  .doc table{width:100%;border-collapse:collapse;font-size:13.5px} .doc td,.doc th{border:1px solid var(--grid);padding:7px 9px;text-align:left} .doc th{width:140px;color:var(--ink2);font-weight:600;background:var(--surface-2)}
+  .toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:var(--page);padding:12px 16px;border-radius:var(--r-md);font-size:14.5px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.2);align-items:center;gap:8px;max-width:420px}
+  .toast.show{display:flex}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;place-items:center;z-index:10}
+  .modal-bg.show{display:grid}
+  .modal{background:var(--surface);border-radius:var(--r-lg);padding:22px 24px;width:480px;max-width:92vw}
+  .modal h3{margin:0 0 6px;font-size:17px}
+
+  /* 업로드 */
+  .drop{border:2px dashed var(--axis);border-radius:var(--r-lg);padding:38px 20px;text-align:center;background:var(--surface);cursor:pointer;transition:border-color .15s,background-color .15s;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+  .drop:hover,.drop:focus-visible{border-color:var(--blue);background:var(--blue-soft)}
+  .drop .icw{width:48px;height:48px;border-radius:var(--r-md);background:var(--surface-2);display:grid;place-items:center;color:var(--ink2);margin-bottom:6px}
+  .drop .icw svg{width:24px;height:24px}
+  .thumbs{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .thumb{width:112px;height:84px;border-radius:var(--r-md);position:relative;overflow:hidden;border:1px solid var(--border)}
+  .thumb span{position:absolute;left:6px;bottom:4px;font-size:11px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+  .prog{height:6px;background:var(--grid);border-radius:var(--r-sm);overflow:hidden;margin-top:12px}
+  .prog i{display:block;height:100%;background:var(--blue);width:0;transition:width .6s cubic-bezier(.16,1,.3,1)}
+  .whatyouget{display:grid;gap:10px}
+  .whatyouget div{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+  .whatyouget svg{color:var(--blue);margin-top:3px}
+  .whatyouget b{display:block}
+  .whatyouget span{color:var(--ink2);font-size:14px}
+
+  /* 분석 중 */
+  .analyzing{display:none}
+  .analyzing.show{display:block}
+  .alist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .alist li{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--muted)}
+  .alist li .dot{width:20px;height:20px;border-radius:var(--r-full);border:2px solid var(--axis);display:grid;place-items:center;flex:none}
+  .alist li.run{color:var(--ink)} .alist li.run .dot{border-color:var(--blue);border-top-color:transparent;animation:spin .8s linear infinite}
+  .alist li.ok{color:var(--ink)} .alist li.ok .dot{background:var(--good);border-color:var(--good);color:#fff} .alist li.ok .dot svg{width:11px;height:11px;stroke-width:3}
+  .alist li .dot svg{display:none} .alist li.ok .dot svg{display:block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .skel{background:linear-gradient(90deg,var(--surface-2) 25%,var(--grid) 37%,var(--surface-2) 63%);background-size:400% 100%;animation:sh 1.2s ease-in-out infinite;border-radius:var(--r-md)}
+  @keyframes sh{0%{background-position:100% 0}100%{background-position:0 0}}
+
+  /* 식별 오버레이 */
+  .frame{position:relative;background:#2d2a26;border-radius:var(--r-lg);overflow:hidden;aspect-ratio:4/3}
+  .frame svg{width:100%;height:100%;display:block}
+  .bbox{position:absolute;border:2px solid;border-radius:var(--r-sm)}
+  .bbox b{position:absolute;left:-2px;top:-22px;font-size:11px;padding:2px 6px;border-radius:var(--r-sm);color:#fff;white-space:nowrap;font-weight:600}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13.5px;margin-top:10px;color:var(--ink2)}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .bar{height:8px;background:var(--grid);border-radius:var(--r-sm);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:var(--r-sm)}
+
+  /* 지도 */
+  .map{position:relative;background:#eef1ea;border-radius:var(--r-lg);overflow:hidden;height:440px;border:1px solid var(--border)}
+  :root[data-theme="dark"] .map,:root:not([data-theme="light"]) .map{background:#1e221c}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .map{background:#eef1ea}}
+  .map > svg{width:100%;height:100%}
+  .mk{cursor:pointer}
+  .panel{position:absolute;right:14px;top:14px;width:316px;background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:14px 16px;box-shadow:0 6px 20px rgba(0,0,0,.10);font-size:14px}
+  .panel h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .maplegend{display:flex;gap:14px;font-size:13.5px;margin-top:10px;flex-wrap:wrap;color:var(--ink2)}
+  .maplegend i{display:inline-block;width:12px;height:12px;border-radius:var(--r-full);margin-right:6px;vertical-align:-1px}
+
+  /* 최적안 선택 카드 */
+  .opt{position:relative;text-align:left;width:100%;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  .opt:hover{border-color:var(--border-strong)}
+  .opt[aria-pressed="true"]{border:2px solid var(--blue);padding:19px 21px}
+  .opt .sel{position:absolute;right:14px;top:14px;width:22px;height:22px;border-radius:var(--r-full);border:2px solid var(--axis);display:grid;place-items:center;color:#fff}
+  .opt[aria-pressed="true"] .sel{background:var(--blue);border-color:var(--blue)}
+  .opt .sel svg{width:12px;height:12px;stroke-width:3;display:none} .opt[aria-pressed="true"] .sel svg{display:block}
+  .opt .amt{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .opt ul{padding-left:18px;font-size:14px;color:var(--ink2);margin:10px 0 0;line-height:1.7}
+
+  /* 차트 */
+  .viz{font-size:12.5px;font-family:var(--font)}
+  .viz text{fill:var(--ink2)} .viz .ax{stroke:var(--axis)} .viz .gl{stroke:var(--grid)} .viz .lab{fill:var(--ink);font-weight:700}
+  .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--page);font-size:12.5px;padding:6px 8px;border-radius:var(--r-sm);display:none;white-space:nowrap;z-index:2}
+
+  .nextchips{display:flex;gap:10px;flex-wrap:wrap}
+  .nextchips button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid var(--border-strong);border-radius:var(--r-md);background:var(--surface);font-size:14.5px;font-weight:500}
+  .nextchips button:hover{background:var(--surface-2)}
+  .nextchips svg{color:var(--blue)}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:minmax(0,1fr)}
+    .side{position:static;height:auto;min-width:0;overflow:visible;border-right:0;border-bottom:1px solid var(--border);padding:14px 12px 10px}
+    .side nav{min-width:0}
+    .brand{margin-bottom:12px}
+    .main{min-width:0}
+    .steps{display:flex;overflow-x:auto;min-width:0;gap:4px;padding-bottom:4px;scrollbar-width:none} .steps li{flex:none} .steps button{width:auto;white-space:nowrap;padding:8px 12px}
+    .side .scenario,.theme{display:none}
+    .main{padding:18px 16px 60px}
+    .grid2,.grid3{grid-template-columns:1fr}
+    .panel{position:static;width:auto;margin-top:10px;box-shadow:none}
+    .map{height:auto}
+    .topbar{flex-direction:column;gap:8px}
+    .actions{flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-q" viewBox="0 0 24 24"><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a2.5 2.5 0 0 0-5 0c0 2.5 5 2.5 5 5a2.5 2.5 0 0 1-5 0M12 6v1.5M12 16.5V18"/></symbol>
+  <symbol id="i-law" viewBox="0 0 24 24"><path d="M12 3v18M3 7h18M5 7l-3 7a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+</svg>
+
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><div class="logo" aria-hidden="true">R</div><div><b>Re:Source AI</b><small>산업자원 순환 에이전트 · 목업 v2</small></div></div>
+    <nav aria-label="진행 단계">
+      <ul class="steps" id="steps">
+        <li data-s="1"><button type="button"><span class="n"><span>1</span><svg class="ic"><use href="#i-check"/></svg></span>업로드</button></li>
+        <li data-s="2"><button type="button"><span class="n"><span>2</span><svg class="ic"><use href="#i-check"/></svg></span>식별 결과</button></li>
+        <li data-s="3"><button type="button"><span class="n"><span>3</span><svg class="ic"><use href="#i-check"/></svg></span>판정</button></li>
+        <li data-s="4"><button type="button"><span class="n"><span>4</span><svg class="ic"><use href="#i-check"/></svg></span>규정 검토</button></li>
+        <li data-s="5"><button type="button"><span class="n"><span>5</span><svg class="ic"><use href="#i-check"/></svg></span>묶음 수거 매칭</button></li>
+        <li data-s="6"><button type="button"><span class="n"><span>6</span><svg class="ic"><use href="#i-check"/></svg></span>비용 · 탄소 비교</button></li>
+        <li data-s="7"><button type="button"><span class="n"><span>7</span><svg class="ic"><use href="#i-check"/></svg></span>최적안 · 승인</button></li>
+        <li data-s="8"><button type="button"><span class="n"><span>8</span><svg class="ic"><use href="#i-check"/></svg></span>대시보드</button></li>
+      </ul>
+    </nav>
+    <div class="scenario"><b>시연 시나리오</b>녹산국가산업단지 · (주)한빛정밀 사출공장<br>폐플라스틱(PP 압축품) 월 800kg<br>현재 혼합 폐기물로 처리비 지출 중</div>
+    <div class="theme"><span>화면 모드</span><button type="button" id="themeBtn" aria-label="밝은 모드와 어두운 모드 전환"><svg class="ic"><use href="#i-sun"/></svg><span id="themeLbl">자동</span></button></div>
+  </aside>
+
+  <main class="main" id="main">
+
+    <!-- ========== 1. 업로드 ========== -->
+    <section class="screen" id="s1" aria-labelledby="h1-1">
+      <div class="topbar"><div><h1 id="h1-1">폐기물 사진·영상 업로드</h1><div class="sub">여러 각도로 찍을수록 판정이 정확해집니다. 영상은 30초 이내.</div></div><div class="status"><span class="pill gray">세션 미생성</span></div></div>
+      <div class="ctx" id="ctx1"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="drop" role="button" tabindex="0" id="drop" aria-label="사진이나 영상을 올리거나 촬영">
+            <div class="icw"><svg class="ic"><use href="#i-camera"/></svg></div>
+            <div><b>사진·영상을 끌어다 놓거나 눌러서 촬영</b></div>
+            <div class="muted">JPG · PNG · MP4(30초) · 성분분석표 PDF는 선택</div>
+          </div>
+          <div class="thumbs" id="thumbs"></div>
+          <div class="prog" id="prog" style="display:none"><i id="progbar"></i></div>
+          <div class="muted" id="progtxt" aria-live="polite"></div>
+        </div>
+        <div class="card">
+          <h2>업로드 한 번으로 받는 것</h2>
+          <div class="whatyouget">
+            <div><svg class="ic"><use href="#i-scan"/></svg><div><b>품목과 이물질 판독</b><span>프레임 24장을 분석해 재질과 오염 비율을 냅니다.</span></div></div>
+            <div><svg class="ic"><use href="#i-coin"/></svg><div><b>지금 손익과 작업 후 손익</b><span>처리비를 내는 상태에서 매각 수익으로 바뀌는 조건을 계산합니다.</span></div></div>
+            <div><svg class="ic"><use href="#i-law"/></svg><div><b>규정 체크리스트</b><span>순환자원·공동처리 가능 여부를 조문과 함께 보여 줍니다.</span></div></div>
+            <div><svg class="ic"><use href="#i-users"/></svg><div><b>묶음 수거와 서류</b><span>같은 단지 기업과 묶어 수거하고 견적서·인계서를 만듭니다.</span></div></div>
+          </div>
+          <div class="note" style="margin-top:14px"><svg class="ic"><use href="#i-info"/></svg><span>외부 발송은 마지막 단계에서 담당자가 승인해야 이루어집니다.</span></div>
+        </div>
+      </div>
+      <div class="actions"><span></span><button class="btn primary" id="go2" disabled onclick="startAnalysis()">식별 시작 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <!-- ========== 2. 식별 결과 ========== -->
+    <section class="screen" id="s2" aria-labelledby="h1-2">
+      <div class="topbar"><div><h1 id="h1-2">① 식별 결과</h1><div class="sub" id="s2sub">세션 RS-2026-1105-017 · 프레임 24장 · 6.8초</div></div><div class="status"><span class="pill blue" id="s2pill">분석 중</span></div></div>
+      <div class="ctx" id="ctx2"></div>
+
+      <div class="analyzing" id="analyzing">
+        <div class="grid2">
+          <div class="card">
+            <h2>분석 진행</h2>
+            <ul class="alist" id="alist">
+              <li class="run"><span class="dot"><svg class="ic"><use href="#i-check"/></svg></span>영상에서 프레임 24장 추출</li>
+              <li><span class="dot"><svg class="ic"><use href="#i-check"/></svg></span>품목·재질·이물질 탐지</li>
+              <li><span class="dot"><svg class="ic"><use href="#i-check"/></svg></span>프레임 간 같은 객체 추적과 집계</li>
+              <li><span class="dot"><svg class="ic"><use href="#i-check"/></svg></span>가격조사 단가 조회 (부산권역, 2026-10)</li>
+            </ul>
+            <div class="skel" style="height:180px;margin-top:16px" aria-hidden="true"></div>
+          </div>
+          <div class="card"><div class="skel" style="height:120px" aria-hidden="true"></div><div class="skel" style="height:40px;margin-top:12px;width:60%" aria-hidden="true"></div><div class="skel" style="height:40px;margin-top:10px;width:80%" aria-hidden="true"></div></div>
+        </div>
+      </div>
+
+      <div id="result2" style="display:none">
+      <div class="grid2">
+        <div class="card">
+          <h2>탐지 결과 (프레임 12 / 24)</h2>
+          <div class="frame">
+            <svg viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#4b4741"/><stop offset="1" stop-color="#1f1d1a"/></linearGradient></defs>
+              <rect width="400" height="300" fill="url(#g1)"/>
+              <g fill="#8e9db3" opacity=".85"><rect x="40" y="90" width="150" height="110" rx="8"/><rect x="200" y="70" width="150" height="130" rx="8"/><rect x="90" y="190" width="200" height="70" rx="8"/></g>
+              <g fill="#d9d4c7" opacity=".9"><rect x="60" y="120" width="28" height="14" rx="2"/><rect x="250" y="100" width="34" height="12" rx="2"/><rect x="140" y="200" width="26" height="12" rx="2"/></g>
+              <g fill="#b9b2a6"><circle cx="300" cy="230" r="9"/><circle cx="120" cy="240" r="7"/></g>
+            </svg>
+            <div class="bbox" style="left:10%;top:30%;width:37%;height:37%;border-color:#2a78d6"><b style="background:#2a78d6">PP 압축품 0.94</b></div>
+            <div class="bbox" style="left:50%;top:23%;width:37%;height:44%;border-color:#2a78d6"><b style="background:#2a78d6">PP 압축품 0.92</b></div>
+            <div class="bbox" style="left:14%;top:39%;width:8%;height:6%;border-color:#eb6834"><b style="background:#eb6834">테이프</b></div>
+            <div class="bbox" style="left:62%;top:33%;width:9%;height:5%;border-color:#eb6834"><b style="background:#eb6834">테이프</b></div>
+            <div class="bbox" style="left:34%;top:66%;width:7%;height:5%;border-color:#eb6834"><b style="background:#eb6834">라벨</b></div>
+            <div class="bbox" style="left:72%;top:73%;width:7%;height:8%;border-color:#e34948"><b style="background:#e34948">금속 혼입</b></div>
+          </div>
+          <div class="legend"><span><i style="background:#2a78d6"></i>품목</span><span><i style="background:#eb6834"></i>제거 가능 이물질</span><span><i style="background:#e34948"></i>금속 혼입</span></div>
+          <div class="row" style="margin-top:10px"><button class="btn quiet" type="button"><svg class="ic"><use href="#i-back"/></svg> 이전 프레임</button><button class="btn quiet" type="button">다음 프레임 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+        </div>
+        <div>
+          <div class="card">
+            <h2>집계</h2>
+            <dl class="kv">
+              <dt>품목</dt><dd><b>폐플라스틱 · PP (폴리프로필렌)</b></dd>
+              <dt>형태</dt><dd>압축품 (베일)</dd>
+              <dt>추정 수량</dt><dd>약 780 kg <span class="muted">부피 기반, ±15%</span></dd>
+              <dt>이물질</dt><dd>
+                <div style="margin:2px 0 8px">테이프·라벨 <b>12%</b><div class="bar"><i style="width:12%;background:var(--orange)"></i></div></div>
+                <div>금속 혼입 <b>3%</b><div class="bar"><i style="width:3%;background:var(--red)"></i></div></div>
+              </dd>
+              <dt>성분표</dt><dd><span class="pill gray">없음</span></dd>
+            </dl>
+          </div>
+          <div class="card">
+            <div class="agent"><div class="av" aria-hidden="true">AI</div><div><p><b>두 가지만 확인해 주세요.</b> 수량과 보관 상태에 따라 손익과 규정 판정이 달라집니다. 값은 비슷한 공장 기준으로 미리 채워 두었습니다.</p></div></div>
+            <div class="field"><label for="q_qty">월 평균 배출량 (kg)</label><input id="q_qty" type="number" inputmode="numeric" value="800"></div>
+            <div class="field"><label for="q_store">현재 보관 상태</label><select id="q_store"><option>야외 야적 · 2주째</option><option>실내 보관 · 1주 이내</option><option>지붕 있는 야외 · 1개월 이상</option></select></div>
+            <div class="field"><label for="q_cur">현재 처리 방식</label><select id="q_cur"><option>혼합 폐기물로 위탁 처리 (처리비 지불)</option><option>재활용업체에 매각</option><option>모름</option></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(1)"><svg class="ic"><use href="#i-back"/></svg> 업로드</button><button class="btn primary" type="button" onclick="go(3)">확인하고 판정 보기 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+      </div>
+    </section>
+
+    <!-- ========== 3. 판정 ========== -->
+    <section class="screen" id="s3" aria-labelledby="h1-3">
+      <div class="topbar"><div><h1 id="h1-3">② 재활용 가능성 판정</h1><div class="sub">PP 압축품 · 월 800kg · 야외 야적 2주</div></div><div class="status"><span class="pill good"><svg class="ic"><use href="#i-check"/></svg>재활용 가능</span></div></div>
+      <div class="ctx" id="ctx3"></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>지금 상태와 작업 후</h2>
+          <div class="grid2" style="gap:10px">
+            <div class="tile neg"><div class="lbl">현재 · 혼합 폐기물 위탁</div><div class="val neg">−250원<span class="muted" style="font-size:14px;font-weight:400">/kg</span></div><div class="muted">월 −200,000원 지출</div></div>
+            <div class="tile posb"><div class="lbl">테이프·라벨 제거 후 매각</div><div class="val pos">+300원<span class="muted" style="font-size:14px;font-weight:400">/kg</span></div><div class="muted">월 +240,000원 수익</div></div>
+          </div>
+          <div style="position:relative;margin-top:14px">
+            <svg class="viz" id="tipchart" viewBox="0 0 520 190" width="100%" role="img" aria-label="kg당 손익: 현재 −250원, 테이프 제거 +60원, 테이프와 라벨 제거 +300원">
+              <line class="gl" x1="60" x2="500" y1="40" y2="40"/><line class="gl" x1="60" x2="500" y1="150" y2="150"/>
+              <line class="ax" x1="60" x2="500" y1="95" y2="95" stroke-width="1.5"/>
+              <text x="54" y="44" text-anchor="end">+300</text><text x="54" y="99" text-anchor="end">0</text><text x="54" y="154" text-anchor="end">−300</text>
+              <g class="mk" data-tip="현재 · 혼합 위탁 −250원/kg"><rect x="90" y="95" width="80" height="46" fill="#e34948"/><rect x="90" y="137" width="80" height="4" rx="2" fill="#e34948"/><text x="130" y="170" text-anchor="middle">현재</text><text class="lab" x="130" y="88" text-anchor="middle">−250</text></g>
+              <g class="mk" data-tip="테이프만 제거 · 저급 매각 +60원/kg"><rect x="230" y="84" width="80" height="11" fill="#2a78d6"/><rect x="230" y="84" width="80" height="4" rx="2" fill="#2a78d6"/><text x="270" y="170" text-anchor="middle">테이프 제거</text><text class="lab" x="270" y="78" text-anchor="middle">+60</text></g>
+              <g class="mk" data-tip="테이프와 라벨 제거, 압축 베일 매각 +300원/kg"><rect x="370" y="40" width="80" height="55" fill="#2a78d6"/><rect x="370" y="40" width="80" height="4" rx="2" fill="#2a78d6"/><text x="410" y="170" text-anchor="middle">테이프 + 라벨 제거</text><text class="lab" x="410" y="34" text-anchor="middle">+300</text></g>
+              <text x="500" y="186" text-anchor="end" fill="var(--muted)">원/kg · 가격조사 2026-10 부산권역 PP 압축품</text>
+            </svg>
+            <div class="tip" id="tip"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="border-color:var(--blue)">
+            <h2>권고 작업 1건</h2>
+            <div style="font-size:18px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em">테이프와 라벨을 제거하세요</div>
+            <dl class="kv">
+              <dt>작업량</dt><dd>1인 · 약 3시간 / 월</dd>
+              <dt>작업 비용</dt><dd class="neg">−45,000원 / 월</dd>
+              <dt>효과</dt><dd class="pos">+440,000원 / 월 <span class="muted" style="font-weight:400">처리비 절감 + 매각 수익</span></dd>
+              <dt>순효과</dt><dd><b style="font-size:17px">+395,000원 / 월</b></dd>
+            </dl>
+            <div class="note" style="margin-top:12px"><svg class="ic"><use href="#i-info"/></svg><span>금속 혼입 3%는 수거 업체가 현장 선별할 수 있는 수준입니다. 5%를 넘으면 매입 거절 기준에 걸립니다.</span></div>
+          </div>
+          <div class="card">
+            <h2>판정 근거</h2>
+            <ul style="margin:0;padding-left:18px;font-size:14.5px;color:var(--ink2);line-height:1.75">
+              <li>부산권역 PP 압축품 매각 단가 300원/kg (가격조사 2026-10)</li>
+              <li>이물질 12%는 업체 매입 기준 10%를 넘음. 제거하면 기준 충족</li>
+              <li>야외 야적 2주는 수분·오염 가중 요인. 지붕 아래 보관 권장</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(2)"><svg class="ic"><use href="#i-back"/></svg> 식별 결과</button><button class="btn primary" type="button" onclick="go(4)">규정 검토 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <!-- ========== 4. 규정 ========== -->
+    <section class="screen" id="s4" aria-labelledby="h1-4">
+      <div class="topbar"><div><h1 id="h1-4">③ 규정 검토</h1><div class="sub">순환경제사회 전환 촉진법 · 폐기물관리법 기준</div></div><div class="status"><span class="pill warn"><svg class="ic"><use href="#i-alert"/></svg>폐기물로 처리 · 인정 신청 가능</span></div></div>
+      <div class="ctx" id="ctx4"></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>결론</h2>
+          <p style="margin:0;font-size:15.5px;line-height:1.7">현재 상태의 PP 압축품은 <b>순환자원 지정 고시 품목이 아니므로</b> 폐기물관리법에 따라 허가 업체에 위탁해야 합니다. 이물질을 제거하면 <b>순환자원 인정 신청이 가능</b>하고, 같은 단지 기업과의 <b>공동처리</b>는 시행규칙이 허용합니다.</p>
+          <h3>요건 체크리스트</h3>
+          <div class="check"><span class="ic-wrap no"><svg class="ic"><use href="#i-x"/></svg></span><div>순환자원 <b>지정 고시 품목</b> 해당 — 해당 없음 <span class="muted">(고시 목록: 폐지·고철·폐유리·알루미늄 등)</span>
+            <details class="cite"><summary><svg class="ic"><use href="#i-law"/></svg>근거 조문</summary><blockquote>순환경제사회 전환 촉진법 제21조(순환자원의 지정 등) ① 환경부장관은 … 폐기물 중 … 순환자원으로 지정·고시할 수 있다.</blockquote></details></div></div>
+          <div class="check"><span class="ic-wrap ok"><svg class="ic"><use href="#i-check"/></svg></span><div>사람의 건강과 환경에 유해하지 않을 것 — PP 단일 재질, 유해물질 미검출
+            <details class="cite"><summary><svg class="ic"><use href="#i-law"/></svg>근거 조문</summary><blockquote>순환경제사회 전환 촉진법 시행령 (순환자원 인정 기준) 1. 사람의 건강이나 환경에 유해하지 아니할 것</blockquote></details></div></div>
+          <div class="check"><span class="ic-wrap ok"><svg class="ic"><use href="#i-check"/></svg></span><div>유상 거래가 가능하고 방치될 우려가 없을 것 — 부산권역 매각 단가 형성</div></div>
+          <div class="check"><span class="ic-wrap q"><svg class="ic"><use href="#i-q"/></svg></span><div>이물질·중금속 기준 충족 — <b>이물질 분석표 필요</b> <span class="muted">(영상 추정 12%)</span></div></div>
+          <div class="check"><span class="ic-wrap ok"><svg class="ic"><use href="#i-check"/></svg></span><div>사업장폐기물 공동처리 가능 — 같은 산업단지 배출자 공동 수집·운반·처리
+            <details class="cite"><summary><svg class="ic"><use href="#i-law"/></svg>근거 조문</summary><blockquote>폐기물관리법 시행규칙 제21조(사업장폐기물의 공동처리 등) ① … 같은 산업단지 … 의 사업장폐기물 배출자는 공동으로 … 운영기구를 설치하고 … 대표자를 선정하여 … 신고하여야 한다.</blockquote></details></div></div>
+          <div class="check"><span class="ic-wrap q"><svg class="ic"><use href="#i-q"/></svg></span><div>보관 기간 준수 — 현재 2주, 법정 기간 이내. <span class="muted">기한 전 수거 일정 확정 필요</span></div></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="agent"><div class="av" aria-hidden="true">AI</div><div><p><b>이물질 분석표가 있습니까?</b> 있으면 인정 신청 가능 여부를 지금 확정합니다. 없으면 이번 배출분은 폐기물로 처리하고, 다음 배출분부터 분석 후 신청하는 경로를 제안합니다.</p>
+              <div class="row"><button class="btn" type="button" onclick="toast('분석표 없음으로 기록했습니다. 폐기물 경로로 진행합니다.')">없음</button><button class="btn" type="button" onclick="toast('PDF 업로드는 목업에서 생략했습니다.')">PDF 올리기</button></div></div></div>
+          </div>
+          <div class="card">
+            <h2>배출자 책임 점검</h2>
+            <div class="check"><span class="ic-wrap ok"><svg class="ic"><use href="#i-check"/></svg></span><div>위탁 후보 업체 3곳 모두 <b>폐합성수지류 수집·운반 허가</b> 보유 <span class="muted">(허가업체현황 대조)</span></div></div>
+            <div class="check"><span class="ic-wrap q"><svg class="ic"><use href="#i-q"/></svg></span><div>후보 1곳은 허용보관량 정보 미등록 — 매칭 단계에서 경고 표시</div></div>
+          </div>
+          <div class="card">
+            <h2>판정이 바뀌는 경우</h2>
+            <ul style="margin:0;padding-left:18px;font-size:14.5px;color:var(--ink2);line-height:1.75">
+              <li>순환자원 지정 고시에 PP가 추가되면 폐기물 규제가 면제되고 자동으로 재판정 알림이 갑니다.</li>
+              <li>이물질 분석 결과가 10% 이하이면 인정 신청서를 자동 생성합니다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(3)"><svg class="ic"><use href="#i-back"/></svg> 판정</button><button class="btn primary" type="button" onclick="go(5)">수거 업체와 묶음 찾기 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <!-- ========== 5. 매칭 ========== -->
+    <section class="screen" id="s5" aria-labelledby="h1-5">
+      <div class="topbar"><div><h1 id="h1-5">④ 묶음 수거 매칭</h1><div class="sub">녹산국가산업단지 · 반경 2km · 폐플라스틱(PP)</div></div><div class="status"><span class="pill crit"><svg class="ic"><use href="#i-alert"/></svg>단독 수거 불가 · 최소 2톤</span></div></div>
+      <div class="ctx" id="ctx5"></div>
+      <div class="card" style="padding:14px">
+        <div class="map" id="map">
+          <svg viewBox="0 0 900 440" preserveAspectRatio="xMidYMid slice" role="img" aria-label="녹산단지 약도: 내 공장, 묶음 후보 기업 A와 B, 제외된 기업 C, 수거업체 2곳">
+            <defs><pattern id="blk" width="60" height="40" patternUnits="userSpaceOnUse"><rect width="58" height="38" fill="#e4e8dd" stroke="#d7dccf"/></pattern></defs>
+            <rect width="900" height="440" fill="#eef1ea"/>
+            <rect width="900" height="440" fill="url(#blk)" opacity=".8"/>
+            <g stroke="#ffffff" stroke-width="10" stroke-linecap="round"><line x1="0" y1="220" x2="900" y2="220"/><line x1="300" y1="0" x2="300" y2="440"/><line x1="620" y1="0" x2="620" y2="440"/><line x1="0" y1="95" x2="900" y2="95"/><line x1="0" y1="345" x2="900" y2="345"/></g>
+            <g stroke="#cfd5c6" stroke-width="12" fill="none" opacity=".9"><path d="M0 415 Q 450 450 900 400"/></g>
+            <text x="20" y="432" fill="#6f7d6e" font-size="12">낙동강 하구 방향</text>
+            <text x="310" y="20" fill="#6f7d6e" font-size="12">녹산산단 335로</text>
+            <!-- 반경 2km -->
+            <circle cx="330" cy="165" r="205" fill="#2a78d6" fill-opacity=".05" stroke="#2a78d6" stroke-dasharray="4 6" stroke-opacity=".6"/>
+            <text x="330" y="385" text-anchor="middle" fill="#2a78d6" font-size="12">반경 2km</text>
+            <!-- 경로 -->
+            <g stroke="#2a78d6" stroke-width="2" stroke-dasharray="6 5" fill="none"><path d="M330 165 L 450 260 L 560 155 L 760 270"/></g>
+            <g class="mk" data-tip="(주)한빛정밀 · 내 공장 · PP 780kg"><circle cx="330" cy="165" r="20" fill="#2a78d6" opacity=".18"/><circle cx="330" cy="165" r="10" fill="#2a78d6" stroke="#fff" stroke-width="2"/><text x="330" y="145" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0b0b0b">내 공장</text></g>
+            <g class="mk" data-tip="단지 내 기업 A · PP 압축품 920kg · 0.6km"><circle cx="450" cy="260" r="9" fill="#1baf7a" stroke="#fff" stroke-width="2"/><text x="450" y="284" text-anchor="middle" font-size="11.5" fill="#0b0b0b">기업 A · 920kg</text></g>
+            <g class="mk" data-tip="단지 내 기업 B · PP 압축품 710kg · 1.1km"><circle cx="560" cy="155" r="9" fill="#1baf7a" stroke="#fff" stroke-width="2"/><text x="560" y="139" text-anchor="middle" font-size="11.5" fill="#0b0b0b">기업 B · 710kg</text></g>
+            <g class="mk" data-tip="단지 내 기업 C · PE 혼합 · 품목 불일치로 제외"><circle cx="180" cy="290" r="8" fill="#c3c2b7" stroke="#fff" stroke-width="2"/><text x="180" y="310" text-anchor="middle" font-size="11.5" fill="#6f7d6e">기업 C (품목 불일치)</text></g>
+            <g class="mk" data-tip="수거업체 ㈜녹산리사이클 · 최소 2톤 · 허가 확인"><rect x="748" y="258" width="24" height="24" rx="5" fill="#eb6834" stroke="#fff" stroke-width="2"/><text x="760" y="300" text-anchor="middle" font-size="11.5" fill="#0b0b0b">㈜녹산리사이클</text></g>
+            <g class="mk" data-tip="수거업체 B · 최소 3톤 · 허용보관량 미등록"><rect x="100" y="60" width="24" height="24" rx="5" fill="#eb6834" stroke="#fff" stroke-width="2"/><text x="112" y="102" text-anchor="middle" font-size="11.5" fill="#0b0b0b">수거업체 B · 확인 필요</text></g>
+          </svg>
+          <div class="panel">
+            <h4>묶음 제안 #1 <span class="pill good"><svg class="ic"><use href="#i-check"/></svg>성립</span></h4>
+            <table class="t" style="font-size:13.5px">
+              <tr><td>내 공장</td><td class="num">780 kg</td></tr>
+              <tr><td>기업 A (익명)</td><td class="num">920 kg</td></tr>
+              <tr><td>기업 B (익명)</td><td class="num">710 kg</td></tr>
+              <tr><th>합산</th><th class="num">2,410 kg ≥ 2,000</th></tr>
+            </table>
+            <div style="margin-top:10px;font-size:13.5px;line-height:1.6">수거업체 ㈜녹산리사이클 · 11/12(수) · 경로 2.9km<br>예상 단가 <b class="pos">300원/kg</b> · 운송비는 물량 비례 분담</div>
+            <div class="muted" style="margin-top:8px">기업 A·B에게 보내는 참여 제안은 마지막 단계에서 승인할 때 함께 발송됩니다.</div>
+          </div>
+        </div>
+        <div class="maplegend"><span><i style="background:#2a78d6"></i>내 공장</span><span><i style="background:#1baf7a"></i>묶음 후보 기업 (익명)</span><span><i style="background:#c3c2b7"></i>제외된 기업</span><span><i style="background:#eb6834;border-radius:3px"></i>수거·재활용 업체</span><span>점선: 도로 경로 (Azure Maps)</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>단독 수거가 안 되는 이유</h2>
+          <p style="margin:0;font-size:15px;color:var(--ink2);line-height:1.7">반경 2km 안의 허가 업체 2곳 모두 최소 수거 물량이 <b>2톤 이상</b>입니다. 월 780kg으로 단독 요청하면 거절되거나 회당 방문 수수료가 붙습니다.</p>
+        </div>
+        <div class="card">
+          <h2>동의와 공개 범위</h2>
+          <p style="margin:0;font-size:15px;color:var(--ink2);line-height:1.7">기업 A·B에는 내 회사명이 보이지 않습니다. 양쪽이 동의하면 그때 회사명이 서로 공개되고, 공동처리 운영기구 신고서가 자동으로 생성됩니다.</p>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(4)"><svg class="ic"><use href="#i-back"/></svg> 규정 검토</button><button class="btn primary" type="button" onclick="go(6)">이 묶음으로 비용·탄소 비교 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <!-- ========== 6. 비용·탄소 ========== -->
+    <section class="screen" id="s6" aria-labelledby="h1-6">
+      <div class="topbar"><div><h1 id="h1-6">⑤ 비용 · 탄소 비교</h1><div class="sub">월 800kg 기준 · 운송 배출을 포함한 순 탄소</div></div><div class="status"><span class="pill blue">추천: 묶음 재활용</span></div></div>
+      <div class="ctx" id="ctx6"></div>
+      <div class="card">
+        <div class="tscroll">
+        <table class="t">
+          <thead><tr><th>처리 경로</th><th class="num">월 비용 (−) / 수익 (+)</th><th class="num">순 탄소 (tCO₂e/월)</th><th class="num">KAU 환산</th><th>실행 조건</th></tr></thead>
+          <tbody>
+            <tr class="rec"><td><b>A. 묶음 재활용</b> <span class="pill good" style="margin-left:6px">추천</span><div class="muted">테이프·라벨 제거 → 3개사 묶음 → ㈜녹산리사이클 매각</div></td><td class="num pos">+195,000원</td><td class="num">−1.20</td><td class="num">+10,800원</td><td>기업 A·B 동의, 제거 작업 3시간</td></tr>
+            <tr><td><b>B. 단독 재활용</b><div class="muted">제거 후 수거업체 B 단독 요청</div></td><td class="num pos">+52,000원</td><td class="num">−1.05</td><td class="num">+9,450원</td><td>최소 물량 미달 · 방문 수수료 · 대기 3주 이상</td></tr>
+            <tr><td><b>C. 현행 유지 (혼합 소각)</b></td><td class="num neg">−200,000원</td><td class="num">+0.62</td><td class="num">−5,580원</td><td>없음</td></tr>
+            <tr><td><b>D. 매립</b></td><td class="num neg">−184,000원</td><td class="num">+0.41</td><td class="num">−3,690원</td><td>매립 가능 지역까지 운송 필요</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="muted" style="margin-top:10px">A와 C의 차이는 월 <b>395,000원</b>, 연 474만 원, 탄소 1.82 tCO₂e/월입니다.</div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>경로별 순 탄소 (tCO₂e / 월)</h2>
+          <div style="position:relative">
+            <svg class="viz" id="co2chart" viewBox="0 0 520 170" width="100%" role="img" aria-label="경로별 순 탄소: A −1.20, B −1.05, C +0.62, D +0.41">
+              <line class="ax" x1="230" x2="230" y1="14" y2="150" stroke-width="1.5"/>
+              <g class="mk" data-tip="A 묶음 재활용 −1.20 t"><rect x="50" y="20" width="180" height="20" fill="#2a78d6"/><rect x="50" y="20" width="4" height="20" rx="2" fill="#2a78d6"/><text class="lab" x="44" y="35" text-anchor="end">−1.20</text><text x="236" y="35">A 묶음 재활용</text></g>
+              <g class="mk" data-tip="B 단독 재활용 −1.05 t"><rect x="72" y="50" width="158" height="20" fill="#2a78d6"/><rect x="72" y="50" width="4" height="20" rx="2" fill="#2a78d6"/><text class="lab" x="66" y="65" text-anchor="end">−1.05</text><text x="236" y="65">B 단독 재활용</text></g>
+              <g class="mk" data-tip="C 혼합 소각 +0.62 t"><rect x="230" y="80" width="93" height="20" fill="#e34948"/><rect x="319" y="80" width="4" height="20" rx="2" fill="#e34948"/><text class="lab" x="329" y="95">+0.62</text><text x="374" y="95">C 혼합 소각</text></g>
+              <g class="mk" data-tip="D 매립 +0.41 t"><rect x="230" y="110" width="62" height="20" fill="#e34948"/><rect x="288" y="110" width="4" height="20" rx="2" fill="#e34948"/><text class="lab" x="298" y="125">+0.41</text><text x="343" y="125">D 매립</text></g>
+              <text x="50" y="162" fill="var(--muted)">← 회피 배출 (절감)</text><text x="500" y="162" text-anchor="end" fill="var(--muted)">추가 배출 →</text>
+            </svg>
+            <div class="tip" id="tip2"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>계산 가정</h2>
+          <table class="t" style="font-size:13.5px">
+            <tr><td>매각 단가</td><td>가격조사 2026-10, 부산권역 PP 압축품 300원/kg</td></tr>
+            <tr><td>처리비</td><td>혼합 사업장폐기물 톤당 250,000원 (업체 인터뷰 평균)</td></tr>
+            <tr><td>운송</td><td>도로 거리 2.9km, 5톤 차량, 물량 비례 분담</td></tr>
+            <tr><td>탄소</td><td>신재 PP 대비 회피 1.5 tCO₂e/t, 소각 0.78, 매립 0.51, 운송 0.12 kg/km·t</td></tr>
+            <tr><td>KAU</td><td>2026-11-04 종가 9,000원/t (가정)</td></tr>
+          </table>
+          <div class="muted" style="margin-top:8px">매립 대비와 신재 대비를 모두 계산하며, 표는 신재 대비 기준입니다.</div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(5)"><svg class="ic"><use href="#i-back"/></svg> 매칭</button><button class="btn primary" type="button" onclick="go(7)">최적안 선택 <svg class="ic"><use href="#i-arrow"/></svg></button></div>
+    </section>
+
+    <!-- ========== 7. 최적안·승인 ========== -->
+    <section class="screen" id="s7" aria-labelledby="h1-7">
+      <div class="topbar"><div><h1 id="h1-7">⑥ 최적안과 서류 승인</h1><div class="sub">안을 고르면 서류 초안이 바뀝니다. 발송은 승인 후에만 이루어집니다.</div></div><div class="status"><span class="pill gray" id="apprstate">승인 대기</span></div></div>
+      <div class="ctx" id="ctx7"></div>
+      <div class="grid3" role="radiogroup" aria-label="처리 방안 선택">
+        <button class="card opt" type="button" aria-pressed="true" data-opt="A" onclick="pick(this)">
+          <span class="sel"><svg class="ic"><use href="#i-check"/></svg></span>
+          <span class="pill blue">추천</span>
+          <h2 style="margin-top:10px">A. 묶음 재활용</h2>
+          <div class="amt pos">+195,000원 / 월</div>
+          <div class="muted">탄소 −1.20 t · 수거 11/12(수)</div>
+          <ul><li>테이프·라벨 제거 (3시간)</li><li>기업 A·B 동의 (익명 제안 발송)</li><li>공동처리 운영기구 신고</li></ul>
+        </button>
+        <button class="card opt" type="button" aria-pressed="false" data-opt="B" onclick="pick(this)">
+          <span class="sel"><svg class="ic"><use href="#i-check"/></svg></span>
+          <span class="pill gray">대안 1</span>
+          <h2 style="margin-top:10px">B. 단독 재활용</h2>
+          <div class="amt pos">+52,000원 / 월</div>
+          <div class="muted">탄소 −1.05 t · 대기 3주 이상</div>
+          <ul><li>묶음 동의가 안 될 때</li><li>방문 수수료 20,000원/회</li></ul>
+        </button>
+        <button class="card opt" type="button" aria-pressed="false" data-opt="C" onclick="pick(this)">
+          <span class="sel"><svg class="ic"><use href="#i-check"/></svg></span>
+          <span class="pill gray">대안 2</span>
+          <h2 style="margin-top:10px">C. 현행 유지</h2>
+          <div class="amt neg">−200,000원 / 월</div>
+          <div class="muted">탄소 +0.62 t</div>
+          <ul><li>작업 없음</li><li>보관 기한 내 위탁 필요</li></ul>
+        </button>
+      </div>
+      <div class="card">
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" type="button" onclick="docTab(this,'d1')">견적 요청서</button>
+          <button role="tab" aria-selected="false" type="button" onclick="docTab(this,'d2')">폐기물 인계서 초안</button>
+          <button role="tab" aria-selected="false" type="button" onclick="docTab(this,'d3')">공동처리 신고서</button>
+        </div>
+        <div class="doc" id="d1" role="tabpanel">
+          <h4>폐합성수지(PP) 공동 수거 견적 요청서</h4>
+          <table><tr><th>수신</th><td>㈜녹산리사이클 영업팀</td></tr><tr><th>발신</th><td>녹산단지 PP 공동처리 운영기구 (대표 (주)한빛정밀)</td></tr><tr><th>품목</th><td>폐플라스틱 · PP 압축품(베일), 이물질 10% 이하 (테이프·라벨 제거 완료 예정)</td></tr><tr><th>물량</th><td id="docQty">총 2,410 kg (3개 사업장, 월 1회 정기)</td></tr><tr><th>수거 희망일</th><td>2026-11-12(수) 오전</td></tr><tr><th>요청 사항</th><td>kg당 매입 단가, 운송비 포함 여부, 이물질 기준, 계근 방식</td></tr><tr><th>첨부</th><td>현장 사진 4매, 식별 리포트 RS-2026-1105-017</td></tr></table>
+          <p class="muted" style="margin:10px 0 0">AI가 생성한 초안입니다. 담당자가 확인한 뒤 발송됩니다.</p>
+        </div>
+        <div class="doc" id="d2" role="tabpanel" hidden>
+          <h4>사업장폐기물 인계서 (초안)</h4>
+          <table><tr><th>배출자</th><td>(주)한빛정밀 · 부산 강서구 녹산산단 ○○로</td></tr><tr><th>폐기물 종류</th><td>폐합성수지류 (51-03-01)</td></tr><tr><th>수량</th><td>780 kg (계근 후 확정)</td></tr><tr><th>운반자</th><td>㈜녹산리사이클 (수집·운반 허가 제○○호)</td></tr><tr><th>처리자</th><td>㈜녹산리사이클 (중간재활용)</td></tr><tr><th>인계일</th><td>2026-11-12</td></tr></table>
+          <p class="muted" style="margin:10px 0 0">올바로 시스템 전자인계서 항목에 맞춰 생성했습니다. 계근 수량 확정 후 제출합니다.</p>
+        </div>
+        <div class="doc" id="d3" role="tabpanel" hidden>
+          <h4>사업장폐기물 공동처리 운영기구 설치 신고서 (초안)</h4>
+          <table><tr><th>근거</th><td>폐기물관리법 시행규칙 제21조</td></tr><tr><th>운영기구 명칭</th><td>녹산단지 PP 공동처리 운영기구</td></tr><tr><th>대표자</th><td>(주)한빛정밀 (동의 후 확정)</td></tr><tr><th>참여 사업장</th><td>(주)한빛정밀, 기업 A, 기업 B (동의 시 상호 공개)</td></tr><tr><th>공동처리 폐기물</th><td>폐합성수지류 (PP), 월 약 2.4톤</td></tr><tr><th>수집·운반·처리 위탁</th><td>㈜녹산리사이클</td></tr></table>
+          <p class="muted" style="margin:10px 0 0">참여 기업 전원 동의 후 관할 구청에 제출합니다. 조문 번호는 국가법령정보센터 현행 조문으로 최종 확인합니다.</p>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(6)"><svg class="ic"><use href="#i-back"/></svg> 비교표</button><div class="row"><button class="btn" type="button" onclick="toast('초안 3종을 PDF로 저장했습니다.')"><svg class="ic"><use href="#i-doc"/></svg>PDF 저장</button><button class="btn primary" type="button" id="apprbtn" onclick="openModal()">A안 승인하고 견적 요청서 발송</button></div></div>
+    </section>
+
+    <!-- ========== 8. 대시보드 ========== -->
+    <section class="screen" id="s8" aria-labelledby="h1-8">
+      <div class="topbar"><div><h1 id="h1-8">대시보드</h1><div class="sub">(주)한빛정밀 · 2026년 누적</div></div><div class="status"><span class="pill good"><svg class="ic"><use href="#i-check"/></svg>발송 완료 · 동의 대기 2건</span></div></div>
+      <div class="ctx" id="ctx8"></div>
+      <div class="grid3">
+        <div class="tile"><div class="lbl">누적 절감 비용</div><div class="val">1,842,000원</div><div class="delta"><svg class="ic"><use href="#i-up"/></svg>이번 달 +395,000원</div></div>
+        <div class="tile"><div class="lbl">누적 절감 탄소</div><div class="val">6.3 tCO₂e</div><div class="delta"><svg class="ic"><use href="#i-up"/></svg>이번 달 +1.82 t</div></div>
+        <div class="tile"><div class="lbl">재활용 전환율</div><div class="val">71%</div><div class="delta"><svg class="ic"><use href="#i-up"/></svg>전월 58%</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>월별 절감 비용 (원)</h2>
+          <div style="position:relative">
+            <svg class="viz" id="trend" viewBox="0 0 520 200" width="100%" role="img" aria-label="월별 절감 비용 추이, 6월 0원에서 11월 395,000원으로 상승">
+              <g class="gl"><line x1="50" x2="500" y1="30" y2="30"/><line x1="50" x2="500" y1="80" y2="80"/><line x1="50" x2="500" y1="130" y2="130"/></g>
+              <line class="ax" x1="50" x2="500" y1="180" y2="180"/>
+              <text x="44" y="34" text-anchor="end">40만</text><text x="44" y="84" text-anchor="end">20만</text><text x="44" y="184" text-anchor="end">0</text>
+              <polyline fill="none" stroke="#2a78d6" stroke-width="2" points="80,180 164,135 248,101 332,82 416,64 500,32"/>
+              <g fill="#2a78d6" stroke="var(--surface)" stroke-width="2">
+                <circle class="mk" data-tip="6월 · 0원" cx="80" cy="180" r="5"/><circle class="mk" data-tip="7월 · 120,000원" cx="164" cy="135" r="5"/><circle class="mk" data-tip="8월 · 210,000원" cx="248" cy="101" r="5"/><circle class="mk" data-tip="9월 · 260,000원" cx="332" cy="82" r="5"/><circle class="mk" data-tip="10월 · 310,000원" cx="416" cy="64" r="5"/><circle class="mk" data-tip="11월 · 395,000원" cx="500" cy="32" r="5"/>
+              </g>
+              <text class="lab" x="500" y="22" text-anchor="end">39.5만</text>
+              <g text-anchor="middle"><text x="80" y="196">6월</text><text x="164" y="196">7월</text><text x="248" y="196">8월</text><text x="332" y="196">9월</text><text x="416" y="196">10월</text><text x="500" y="196">11월</text></g>
+            </svg>
+            <div class="tip" id="tip3"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>처리 이력</h2>
+          <div class="tscroll">
+          <table class="t" style="font-size:14px">
+            <thead><tr><th>일자</th><th>품목</th><th>경로</th><th class="num">손익</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td>11/05</td><td>PP 압축품 780kg</td><td>묶음 재활용</td><td class="num pos">+195,000</td><td><span class="pill warn">동의 대기</span></td></tr>
+              <tr><td>10/08</td><td>PP 압축품 760kg</td><td>단독 재활용</td><td class="num pos">+48,000</td><td><span class="pill good">완료</span></td></tr>
+              <tr><td>09/10</td><td>포장재(골판지) 420kg</td><td>매각</td><td class="num pos">+37,800</td><td><span class="pill good">완료</span></td></tr>
+              <tr><td>08/12</td><td>금속 스크랩 210kg</td><td>매각</td><td class="num pos">+84,000</td><td><span class="pill good">완료</span></td></tr>
+              <tr><td>07/09</td><td>PP 혼합 800kg</td><td>혼합 소각</td><td class="num neg">−200,000</td><td><span class="pill gray">완료</span></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>다음에 할 수 있는 것</h2>
+        <div class="nextchips">
+          <button type="button" onclick="toast('협력사 ESG 자가진단 보고서는 로드맵 기능입니다.')"><svg class="ic"><use href="#i-doc"/></svg>협력사 ESG 자가진단 보고서</button>
+          <button type="button" onclick="toast('고시 변경 감시는 로드맵 기능입니다.')"><svg class="ic"><use href="#i-bell"/></svg>순환자원 고시 변경 시 재판정 알림</button>
+          <button type="button" onclick="toast('배출 예보는 로드맵 기능입니다.')"><svg class="ic"><use href="#i-cal"/></svg>12월 배출 예보 · 수거 사전 계약</button>
+          <button type="button" onclick="toast('업체 측 화면은 로드맵 기능입니다.')"><svg class="ic"><use href="#i-truck"/></svg>업체 측 화면: 단지 내 묶음 조회</button>
+        </div>
+      </div>
+      <div class="actions"><button class="btn quiet" type="button" onclick="go(7)"><svg class="ic"><use href="#i-back"/></svg> 최적안</button><button class="btn" type="button" onclick="reset()">처음부터 다시</button></div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><svg class="ic"><use href="#i-check"/></svg><span id="toastTxt"></span></div>
+<div class="modal-bg" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+  <div class="modal">
+    <h3 id="mtitle">발송 전 확인</h3>
+    <p style="margin:0 0 12px;font-size:14.5px;color:var(--ink2)">아래 항목이 외부로 발송됩니다. 승인하면 수거업체와 기업 A·B에 메일이 갑니다.</p>
+    <div class="check"><span class="ic-wrap ok"><svg class="ic"><use href="#i-check"/></svg></span><div>견적 요청서 → ㈜녹산리사이클</div></div>
+    <div class="check"><span class="ic-wrap ok"><svg class="ic"><use href="#i-check"/></svg></span><div>묶음 참여 제안 (익명) → 기업 A, 기업 B</div></div>
+    <div class="check"><span class="ic-wrap q"><svg class="ic"><use href="#i-q"/></svg></span><div>공동처리 신고서 — 동의 완료 후 별도 승인</div></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" type="button" onclick="closeModal()">취소</button><button class="btn primary" type="button" onclick="approve()">승인하고 발송</button></div>
+  </div>
+</div>
+
+<script>
+  const total=8; let cur=1; const done=new Set(); let picked='A';
+  const FACTS=[
+    {s:2,t:'품목 <b>PP 압축품</b> · 약 780kg'},
+    {s:3,t:'판정 <b>재활용 가능</b> · 작업 후 +300원/kg'},
+    {s:4,t:'규정 <b>폐기물 처리</b> · 인정 신청 가능 · 공동처리 가능'},
+    {s:5,t:'묶음 <b>3개사 2,410kg</b> · ㈜녹산리사이클'},
+    {s:6,t:'추천 <b>A 묶음 재활용</b> · +195,000원/월'},
+    {s:7,t:'승인 <b>대기</b>'},
+  ];
+  function renderCtx(n){
+    const el=document.getElementById('ctx'+n); if(!el) return;
+    const items=FACTS.filter(f=>f.s<n);
+    if(!items.length){el.innerHTML='';return;}
+    el.innerHTML='<span class="lbl">지금까지 확정</span>'+items.map(f=>`<span class="chip"><svg class="ic"><use href="#i-check"/></svg>${f.t}</span>`).join('');
+  }
+  function go(n){
+    if(n>cur) for(let i=cur;i<n;i++) done.add(i);
+    cur=n;
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='s'+n));
+    document.querySelectorAll('#steps li').forEach(li=>{const k=+li.dataset.s;li.classList.toggle('active',k===n);li.classList.toggle('done',done.has(k)&&k!==n);li.querySelector('button').setAttribute('aria-current',k===n?'step':'false');});
+    renderCtx(n);
+    if(n===2 && !document.getElementById('analyzing').classList.contains('show') && document.getElementById('result2').style.display==='none'){showResult2();}
+    window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    document.getElementById('main').focus({preventScroll:true});
+  }
+  document.querySelectorAll('#steps li').forEach(li=>li.querySelector('button').addEventListener('click',()=>{const k=+li.dataset.s; if(k===2&&!done.has(1)){mockUpload(true);} go(k);}));
+  function reset(){done.clear();picked='A';document.getElementById('thumbs').innerHTML='';document.getElementById('prog').style.display='none';document.getElementById('progtxt').textContent='';document.getElementById('go2').disabled=true;const s=document.getElementById('apprstate');s.textContent='승인 대기';s.className='pill gray';document.getElementById('apprbtn').disabled=false;document.getElementById('result2').style.display='none';go(1);}
+  function mockUpload(silent){
+    const t=document.getElementById('thumbs'); t.innerHTML='';
+    const grads=['linear-gradient(135deg,#6b7a8f,#3a3f48)','linear-gradient(135deg,#7d8ba0,#2f343c)','linear-gradient(135deg,#8c97a8,#3b4049)','linear-gradient(135deg,#5f6b7d,#23272e)'];
+    ['IMG_0412.jpg','IMG_0413.jpg','IMG_0414.jpg','VID_0415.mp4 · 0:24'].forEach((n,i)=>{const d=document.createElement('div');d.className='thumb';d.style.background=grads[i];d.innerHTML='<span>'+n+'</span>';t.appendChild(d);});
+    const p=document.getElementById('prog'),b=document.getElementById('progbar'),tx=document.getElementById('progtxt');
+    p.style.display='block';b.style.width='0';tx.textContent='업로드 중…';
+    const fast=silent||matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(()=>{b.style.width='100%';},fast?0:50);
+    setTimeout(()=>{tx.textContent='업로드 완료 · 세션 RS-2026-1105-017 · 프레임 24장 추출';document.getElementById('go2').disabled=false;},fast?0:800);
+  }
+  const drop=document.getElementById('drop'); drop.addEventListener('click',()=>mockUpload(false)); drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mockUpload(false);}});
+  function startAnalysis(){
+    const an=document.getElementById('analyzing'), res=document.getElementById('result2');
+    res.style.display='none'; an.classList.add('show'); document.getElementById('s2pill').textContent='분석 중'; document.getElementById('s2pill').className='pill blue';
+    const items=[...document.querySelectorAll('#alist li')]; items.forEach((li,i)=>li.className=i===0?'run':'');
+    go(2);
+    const fast=matchMedia('(prefers-reduced-motion: reduce)').matches; const step=fast?0:450;
+    items.forEach((li,i)=>{setTimeout(()=>{items.forEach((x,j)=>x.className=j<i+1?'ok':(j===i+1?'run':''));},step*(i+1));});
+    setTimeout(showResult2,step*(items.length+1));
+  }
+  function showResult2(){document.getElementById('analyzing').classList.remove('show');document.getElementById('result2').style.display='block';const p=document.getElementById('s2pill');p.textContent='신뢰도 0.91';p.className='pill blue';}
+  function toast(m){const t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2800);}
+  function docTab(btn,id){document.querySelectorAll('.tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected','false'));btn.setAttribute('aria-selected','true');['d1','d2','d3'].forEach(k=>document.getElementById(k).hidden=(k!==id));}
+  function pick(btn){
+    document.querySelectorAll('.opt').forEach(b=>b.setAttribute('aria-pressed','false')); btn.setAttribute('aria-pressed','true'); picked=btn.dataset.opt;
+    const lbl={A:'A안 승인하고 견적 요청서 발송',B:'B안 승인하고 단독 견적 요청서 발송',C:'C안 확정 (발송 없음)'}[picked];
+    document.getElementById('apprbtn').textContent=lbl;
+    document.getElementById('docQty').textContent=picked==='A'?'총 2,410 kg (3개 사업장, 월 1회 정기)':'780 kg (단독)';
+  }
+  function openModal(){if(picked==='C'){toast('현행 유지로 확정했습니다. 보관 기한 알림을 설정합니다.');return;}document.getElementById('modal').classList.add('show');document.querySelector('#modal .btn.primary').focus();}
+  function closeModal(){document.getElementById('modal').classList.remove('show');document.getElementById('apprbtn').focus();}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+  function approve(){closeModal();const s=document.getElementById('apprstate');s.innerHTML='<svg class="ic"><use href="#i-check"/></svg>승인 · 발송 완료';s.className='pill good';document.getElementById('apprbtn').disabled=true;FACTS[5].t='승인 <b>완료</b> · 견적 요청 발송';toast('견적 요청서와 묶음 제안을 발송했습니다. 대시보드에 기록됩니다.');setTimeout(()=>go(8),matchMedia('(prefers-reduced-motion: reduce)').matches?0:1000);}
+  function bindTips(svgId,tipId){const svg=document.getElementById(svgId),tip=document.getElementById(tipId);if(!svg)return;
+    svg.querySelectorAll('.mk').forEach(m=>{m.addEventListener('mousemove',e=>{const r=svg.parentElement.getBoundingClientRect();tip.style.display='block';tip.textContent=m.dataset.tip;tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top-30)+'px';});m.addEventListener('mouseleave',()=>tip.style.display='none');});}
+  bindTips('tipchart','tip');bindTips('co2chart','tip2');bindTips('trend','tip3');
+  (function(){const map=document.getElementById('map');const tip=document.createElement('div');tip.className='tip';map.appendChild(tip);
+    map.querySelectorAll('.mk').forEach(m=>{m.setAttribute('tabindex','0');m.addEventListener('mousemove',e=>{const r=map.getBoundingClientRect();tip.style.display='block';tip.textContent=m.dataset.tip;tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top-30)+'px';});m.addEventListener('mouseleave',()=>tip.style.display='none');});})();
+  // URL ?theme=light|dark 로 테마 고정 (시연·스크린샷용)
+  (function(){const m=(location.search.match(/theme=(light|dark)/)||[])[1];if(m){document.documentElement.setAttribute('data-theme',m);}})();
+  // 테마 토글: 자동 → 밝게 → 어둡게
+  (function(){const root=document.documentElement,btn=document.getElementById('themeBtn'),lbl=document.getElementById('themeLbl');const order=['auto','light','dark'];let i=order.indexOf(root.getAttribute('data-theme')||'auto');lbl.textContent={auto:'자동',light:'밝게',dark:'어둡게'}[order[i]];
+    btn.addEventListener('click',()=>{i=(i+1)%3;const m=order[i];if(m==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',m);lbl.textContent={auto:'자동',light:'밝게',dark:'어둡게'}[m];});})();
+  // 키보드: ← → 로 단계 이동
+  document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(e.key==='ArrowRight'&&cur<total){if(cur===1&&document.getElementById('go2').disabled)return;go(cur+1);}if(e.key==='ArrowLeft'&&cur>1)go(cur-1);});
+  document.getElementById('main').setAttribute('tabindex','-1');
+  // URL 해시 #step-N 으로 화면 열기 (공유·스크린샷용). 섹션 id와 다르게 두어 앵커 스크롤을 막는다.
+  const h=parseInt((location.hash.match(/step-?(\d)/)||[])[1]);
+  if(h>=1&&h<=8){for(let i=1;i<h;i++)done.add(i);if(h>1){document.getElementById('go2').disabled=false;document.getElementById('result2').style.display='block';document.getElementById('s2pill').textContent='신뢰도 0.91';}go(h);}else{go(1);}
+</script>
+</body>
+</html>
