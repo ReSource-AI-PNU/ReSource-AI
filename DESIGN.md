@@ -48,26 +48,30 @@
 
 ## 색
 
-- **방식:** 절제형. 브랜드 색은 따로 두지 않는다. 주요 버튼은 먹색이다.
+- **방식:** 흰 배경·흑백 + 기능색 3개(v2, 2026-11-09). 브랜드 색은 따로 두지 않는다. 주요 버튼은 검정이다. 색이 보이는 곳은 이익(초록), 손실(빨강), AI 표시(형광 노랑)뿐이며, 나머지는 모두 흰색·검정·회색이다.
+- 바탕(`bg`)과 패널(`surface`)이 모두 흰색이므로, 영역은 색이 아니라 가는 선(`line`)으로 나눈다.
+- 아래 표의 `ink`는 "먹"이라는 이름을 유지하지만 값은 검정이다. 문서의 "먹색"은 검정으로 읽는다.
 
 | 토큰 | 라이트 | 다크 | 용도 |
 |---|---|---|---|
-| `bg` | `#F2F0EA` | `#12110D` | 재생지 바탕 |
-| `surface` | `#FBFAF6` | `#1B1A15` | 패널, 표 |
-| `sunken` | `#E9E6DE` | `#0D0C09` | 들어간 면, 세그먼트 바탕 |
-| `line` | `#DEDBD2` | `#2E2C25` | 구분선 |
-| `line-strong` | `#C9C5BA` | `#3E3B32` | 입력 테두리 |
-| `ink` | `#16150F` | `#F1EFE8` | 글씨, 주요 버튼 바탕 |
-| `ink-2` | `#3A3830` | `#D2CFC5` | 본문 |
-| `muted` | `#6B675E` | `#A39F94` | 보조 글씨 (4.9:1 / 7.2:1) |
+| `bg` | `#FFFFFF` | `#0A0A0A` | 바탕 |
+| `surface` | `#FFFFFF` | `#111111` | 패널, 표 |
+| `sunken` | `#F4F4F5` | `#000000` | 들어간 면, 세그먼트 바탕 |
+| `line` | `#E8E8EA` | `#262626` | 구분선 |
+| `line-strong` | `#D4D4D8` | `#3F3F46` | 입력 테두리 |
+| `ink` | `#0A0A0A` | `#FAFAFA` | 글씨, 주요 버튼 바탕 |
+| `ink-2` | `#3F3F46` | `#D4D4D8` | 본문 |
+| `muted` | `#66666E` | `#A1A1AA` | 보조 글씨 (흰 바탕 5.7:1, 회색 바탕 5.2:1 / 다크 7.7:1) |
 | `marker` | `#E6FF3D` | `#E6FF3D` | AI 표시 전용 |
 | `gain` | `#0C7148` | `#43C98A` | 이익 (+) |
-| `gain-bg` | `#E1F1E6` | `#12291E` | 이익 안내 바탕 |
+| `gain-bg` | `#ECF6EF` | `#12291E` | 이익 안내 바탕 |
 | `loss` | `#B5332A` | `#FF7266` | 손실 (−), 막힌 조건 |
-| `loss-bg` | `#F8E4DF` | `#2D1714` | 손실 안내 바탕 |
+| `loss-bg` | `#FBECEB` | `#2D1714` | 손실 안내 바탕 |
 | `warn` | `#9A5B00` | `#E0A23A` | 확인 필요, 정보 부족 |
-| `warn-bg` | `#F6ECD8` | `#2A2112` | |
-| `photo` | `#2B2A24` | `#0B0A08` | 사진 영역 바탕 |
+| `warn-bg` | `#FBF3E4` | `#2A2112` | |
+| `photo` | `#18181B` | `#000000` | 사진 영역 바탕 |
+| `chart-gain` / `chart-loss` | `#0C7148` / `#B5332A` | `#279763` / `#E5533F` | 차트 손익 막대 (dataviz 검증기 통과) |
+| `chart-1~4` | 참조 팔레트 1~4 | 다크 단계 | 품목 범주형 고정 순서: 폐플라스틱·금속 스크랩·폐목재·포장재 |
 
 ### 색 규칙
 
@@ -115,8 +119,8 @@
 
 ## 산업단지 3D 지도
 
-- **배경 지도 타일을 쓰지 않는다.** 종이색 바탕 위에 건물 외곽선만 높이대로 세운 건축 모형처럼 보여 준다 (MapLibre `fill-extrusion`).
-- **건물 색:** 일반 건물 `#DCD8CD`, 입주 기업 건물 `#B5AFA1`, 마우스를 올린 건물 `#8F897B`, 선택한 건물은 먹(`ink`). 다크에서는 `#2A2822` / `#4A463D` / `#6E695D` / `ink`.
+- **배경 지도 타일을 쓰지 않는다.** 흰 바탕 위에 건물 외곽선만 높이대로 세운 건축 모형처럼 보여 준다 (MapLibre `fill-extrusion`).
+- **건물 색:** 바탕 흰색, 일반 건물 `#E4E4E7`, 입주 기업 건물 `#A1A1AA`, 마우스를 올린 건물 `#71717A`, 선택한 건물은 검정(`ink`). 다크에서는 `#27272A` / `#52525B` / `#71717A` / `ink`.
 - **기업 핀:** 역할은 색이 아니라 모양으로 구분한다. 배출 ● (먹 원), 처리업체 ■ (먹 사각), 수요처 ○ (먹 고리). 이름표는 마우스를 올리거나 선택했을 때만 보인다.
 - **AI가 고른 묶음 수거 그룹**은 형광펜으로 표시한다 (형광펜 규칙과 같다).
 - **기본 시점:** 기울기 52°, 방위 −20°. 3D/2D 전환과 "단지 전체 보기" 버튼을 둔다.
@@ -137,22 +141,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #F2F0EA;
-  --color-surface: #FBFAF6;
-  --color-sunken: #E9E6DE;
-  --color-line: #DEDBD2;
-  --color-line-strong: #C9C5BA;
-  --color-ink: #16150F;
-  --color-ink-2: #3A3830;
-  --color-muted: #6B675E;
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-sunken: #F4F4F5;
+  --color-line: #E8E8EA;
+  --color-line-strong: #D4D4D8;
+  --color-ink: #0A0A0A;
+  --color-ink-2: #3F3F46;
+  --color-muted: #66666E;
   --color-marker: #E6FF3D;
   --color-gain: #0C7148;
-  --color-gain-bg: #E1F1E6;
+  --color-gain-bg: #ECF6EF;
   --color-loss: #B5332A;
-  --color-loss-bg: #F8E4DF;
+  --color-loss-bg: #FBECEB;
   --color-warn: #9A5B00;
-  --color-warn-bg: #F6ECD8;
-  --color-photo: #2B2A24;
+  --color-warn-bg: #FBF3E4;
+  --color-photo: #18181B;
 
   --font-sans: "Wanted Sans Variable", "Pretendard Variable", "Apple SD Gothic Neo", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -168,21 +172,21 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 [data-theme="dark"] {
-  --color-bg: #12110D;
-  --color-surface: #1B1A15;
-  --color-sunken: #0D0C09;
-  --color-line: #2E2C25;
-  --color-line-strong: #3E3B32;
-  --color-ink: #F1EFE8;
-  --color-ink-2: #D2CFC5;
-  --color-muted: #A39F94;
+  --color-bg: #0A0A0A;
+  --color-surface: #111111;
+  --color-sunken: #000000;
+  --color-line: #262626;
+  --color-line-strong: #3F3F46;
+  --color-ink: #FAFAFA;
+  --color-ink-2: #D4D4D8;
+  --color-muted: #A1A1AA;
   --color-gain: #43C98A;
   --color-gain-bg: #12291E;
   --color-loss: #FF7266;
   --color-loss-bg: #2D1714;
   --color-warn: #E0A23A;
   --color-warn-bg: #2A2112;
-  --color-photo: #0B0A08;
+  --color-photo: #000000;
 }
 
 body {
@@ -204,3 +208,4 @@ body {
 | 2026-11-09 | 판정 헤드라인은 Wanted Sans 굵게 | 사용자 선택. 서체 하나로 통일한다. 한글 세리프(Hahmlet)는 검토 후 제외했다 |
 | 2026-11-09 | 초록 브랜드 색과 자연 이미지 배제 | 폐기물·ESG 제품과 구별하기 위함. 세 의견이 모두 일치했다 |
 | 2026-11-09 | 형광펜 `#E6FF3D`를 AI 표시 전용으로 사용 | 노란색이 보이면 곧 AI 근거라는 뜻이 되도록 의미를 하나로 고정한다 |
+| 2026-11-09 | 재생지 바탕을 흰 배경·흑백으로 변경 (v2) | 사용자 요청. 전체 화면 26개를 두 팔레트로 캡처해 비교한 뒤 확정했다. 손익·AI 표시 색은 의미를 전달하므로 유지했다 |
