@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re:Source AI · 사용자 흐름 목업</title>
+<style>
+  :root{
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+    --blue:#2a78d6; --blue-100:#cde2fb; --blue-600:#184f95;
+    --red:#e34948; --orange:#eb6834; --aqua:#1baf7a;
+    --good:#0ca30c; --good-text:#006300; --warn:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --radius:12px;
+    font-family: system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font-size:15px;line-height:1.5}
+  a{color:inherit}
+  button{font:inherit;cursor:pointer}
+
+  /* ---------- 앱 셸 ---------- */
+  .shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+  .side{background:#fff;border-right:1px solid var(--border);padding:20px 16px;position:sticky;top:0;height:100vh;overflow:auto}
+  .brand{display:flex;align-items:center;gap:10px;margin:4px 8px 22px}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--aqua));color:#fff;display:grid;place-items:center;font-weight:800}
+  .brand b{font-size:16px}
+  .brand small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+  .steps{list-style:none;margin:0;padding:0}
+  .steps li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:var(--ink2);cursor:pointer;font-size:14px}
+  .steps li:hover{background:#f2f2ef}
+  .steps li .n{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--axis);display:grid;place-items:center;font-size:12px;color:var(--muted);flex:none}
+  .steps li.done .n{background:var(--good);border-color:var(--good);color:#fff}
+  .steps li.active{background:var(--blue-100);color:var(--ink);font-weight:600}
+  .steps li.active .n{background:var(--blue);border-color:var(--blue);color:#fff}
+  .side .meta{margin-top:22px;padding:12px;border:1px dashed var(--axis);border-radius:10px;font-size:12.5px;color:var(--ink2)}
+  .side .meta b{display:block;color:var(--ink)}
+  .main{padding:28px 36px 60px;max-width:1120px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .topbar h1{font-size:22px;margin:0}
+  .topbar .sub{color:var(--ink2);font-size:14px;margin-top:2px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:#fff}
+  .pill.blue{background:var(--blue-100);border-color:transparent;color:var(--blue-600)}
+  .pill.good{background:#e6f6e6;color:var(--good-text);border-color:transparent}
+  .pill.warn{background:#fff3d6;color:#7a4b00;border-color:transparent}
+  .pill.crit{background:#fde3e3;color:#8a1f1f;border-color:transparent}
+  .pill.gray{background:#f0efec;color:var(--ink2);border-color:transparent}
+
+  .screen{display:none;animation:fade .25s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px}
+  .card h2{font-size:16px;margin:0 0 12px}
+  .card h3{font-size:14px;margin:14px 0 6px;color:var(--ink2)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 16px;font-weight:600}
+  .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn.primary:hover{background:var(--blue-600)}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .actions{display:flex;justify-content:space-between;margin-top:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:14px}
+  .kv dt{color:var(--ink2)} .kv dd{margin:0}
+  table.t{width:100%;border-collapse:collapse;font-size:14px}
+  table.t th,table.t td{padding:9px 10px;border-bottom:1px solid var(--grid);text-align:left;vertical-align:top}
+  table.t th{color:var(--ink2);font-weight:600;font-size:13px}
+  table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.t tr.rec{background:var(--blue-100)}
+  .money-neg{color:var(--critical);font-weight:700}
+  .money-pos{color:var(--good-text);font-weight:700}
+  .note{background:#f5f5f2;border-left:3px solid var(--axis);padding:10px 14px;border-radius:8px;font-size:13.5px;color:var(--ink2)}
+  .agent{display:flex;gap:12px;align-items:flex-start;background:#f3f7fd;border:1px solid #dbe7f8;border-radius:12px;padding:12px 14px;margin:10px 0}
+  .agent .av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+  .agent p{margin:0 0 6px}
+  .field{display:grid;gap:4px;margin:8px 0}
+  .field label{font-size:13px;color:var(--ink2)}
+  .field input,.field select{font:inherit;padding:9px 10px;border:1px solid var(--axis);border-radius:8px;background:#fff}
+  .check{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--grid);font-size:14px}
+  .check:last-child{border-bottom:0}
+  .check .ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex:none;color:#fff}
+  .ic.ok{background:var(--good)} .ic.no{background:var(--critical)} .ic.q{background:var(--warn);color:#3a2a00}
+  details.cite{margin:6px 0 0 28px;font-size:13px}
+  details.cite summary{cursor:pointer;color:var(--blue-600)}
+  details.cite blockquote{margin:6px 0;padding:8px 12px;background:#fff;border:1px solid var(--grid);border-radius:8px;color:var(--ink2)}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+  .tile .lbl{font-size:13px;color:var(--ink2)} .tile .val{font-size:28px;font-weight:700;margin-top:2px}
+  .tile .delta{font-size:12.5px;color:var(--good-text);margin-top:2px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--grid);margin-bottom:12px}
+  .tabs button{border:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--ink2);font-weight:600}
+  .tabs button.on{color:var(--ink);border-bottom-color:var(--blue)}
+  .doc{background:#fff;border:1px solid var(--grid);border-radius:8px;padding:22px 26px;font-size:13.5px;min-height:260px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .doc h4{margin:0 0 12px;font-size:16px;text-align:center}
+  .doc table{width:100%;border-collapse:collapse;font-size:13px} .doc td,.doc th{border:1px solid var(--grid);padding:6px 8px}
+  .toast{position:fixed;right:24px;bottom:24px;background:#0b0b0b;color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+  .toast.show{display:block}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;place-items:center;z-index:10}
+  .modal-bg.show{display:grid}
+  .modal{background:#fff;border-radius:14px;padding:22px 24px;width:460px;max-width:92vw}
+
+  /* 업로드 */
+  .drop{border:2px dashed var(--axis);border-radius:14px;padding:40px 20px;text-align:center;background:#fff;cursor:pointer}
+  .drop:hover{border-color:var(--blue);background:#f7faff}
+  .drop .big{font-size:40px}
+  .thumbs{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .thumb{width:112px;height:84px;border-radius:8px;position:relative;overflow:hidden;border:1px solid var(--border)}
+  .thumb span{position:absolute;left:6px;bottom:4px;font-size:11px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+  .prog{height:8px;background:var(--grid);border-radius:4px;overflow:hidden;margin-top:12px}
+  .prog i{display:block;height:100%;background:var(--blue);width:0;transition:width .6s}
+
+  /* 식별 오버레이 */
+  .frame{position:relative;background:#2d2a26;border-radius:12px;overflow:hidden;aspect-ratio:4/3}
+  .frame svg{width:100%;height:100%;display:block}
+  .bbox{position:absolute;border:2px solid;border-radius:4px}
+  .bbox b{position:absolute;left:-2px;top:-22px;font-size:11px;padding:2px 6px;border-radius:4px;color:#fff;white-space:nowrap}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:10px}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .bar{height:10px;background:var(--grid);border-radius:5px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:5px}
+
+  /* 지도 */
+  .map{position:relative;background:#eef1ea;border-radius:12px;overflow:hidden;height:420px;border:1px solid var(--border)}
+  .map svg{width:100%;height:100%}
+  .mk{cursor:pointer}
+  .panel{position:absolute;right:14px;top:14px;width:300px;background:#fff;border-radius:12px;border:1px solid var(--border);padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.08);font-size:13.5px}
+  .panel h4{margin:0 0 8px;font-size:14px}
+  .maplegend{display:flex;gap:14px;font-size:13px;margin-top:10px;flex-wrap:wrap}
+  .maplegend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+  /* 차트 */
+  .viz{font-size:12.5px}
+  .viz text{fill:var(--ink2)} .viz .ax{stroke:var(--axis)} .viz .gl{stroke:var(--grid)}
+  .tip{position:absolute;pointer-events:none;background:#0b0b0b;color:#fff;font-size:12px;padding:6px 8px;border-radius:6px;display:none;white-space:nowrap}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--border)}
+    .steps{display:flex;overflow:auto;gap:4px} .steps li{white-space:nowrap}
+    .side .meta{display:none}
+    .main{padding:18px}
+    .grid2,.grid3{grid-template-columns:1fr}
+    .panel{position:static;width:auto;margin-top:10px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><div class="logo">R</div><div><b>Re:Source AI</b><small>산업자원 순환 에이전트 · 목업</small></div></div>
+    <ul class="steps" id="steps">
+      <li data-s="1"><span class="n">1</span>업로드</li>
+      <li data-s="2"><span class="n">2</span>식별 결과 · 되묻기</li>
+      <li data-s="3"><span class="n">3</span>판정 카드</li>
+      <li data-s="4"><span class="n">4</span>규정 카드</li>
+      <li data-s="5"><span class="n">5</span>묶음 수거 매칭</li>
+      <li data-s="6"><span class="n">6</span>비용 · 탄소 비교</li>
+      <li data-s="7"><span class="n">7</span>최적안 · 문서 승인</li>
+      <li data-s="8"><span class="n">8</span>대시보드</li>
+    </ul>
+    <div class="meta">
+      <b>시연 시나리오</b>
+      녹산국가산업단지 · (주)한빛정밀 사출공장<br>
+      품목: 폐플라스틱(PP 압축품) 월 800kg<br>
+      현재: 혼합 폐기물로 처리비 지출 중
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ========== 1. 업로드 ========== -->
+    <section class="screen" id="s1">
+      <div class="topbar"><div><h1>폐기물 사진·영상 업로드</h1><div class="sub">더미를 여러 각도로 찍으면 판정이 정확해집니다. 영상은 30초 이내.</div></div><span class="pill gray">세션 미생성</span></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="drop" onclick="mockUpload()">
+            <div class="big">📷</div>
+            <div><b>사진·영상을 끌어다 놓거나 눌러서 촬영</b></div>
+            <div class="muted">JPG · PNG · MP4(30초) · 성분분석표 PDF(선택)</div>
+          </div>
+          <div class="thumbs" id="thumbs"></div>
+          <div class="prog" id="prog" style="display:none"><i id="progbar"></i></div>
+          <div class="muted" id="progtxt"></div>
+        </div>
+        <div class="card">
+          <h2>어떻게 동작하나요</h2>
+          <ol style="margin:0;padding-left:18px;font-size:14px;color:var(--ink2);line-height:1.8">
+            <li>영상에서 프레임을 추출해 품목과 이물질을 탐지합니다.</li>
+            <li>재사용·재활용·폐기를 판정하고 <b>현재 손익과 작업 후 손익</b>을 계산합니다.</li>
+            <li>순환자원 지정·인정 요건을 조문 단위로 검토합니다.</li>
+            <li>같은 단지 안에서 묶어 수거할 기업과 처리업체를 찾습니다.</li>
+            <li>처리 방식별 비용과 탄소를 비교해 최적안과 서류를 만듭니다.</li>
+          </ol>
+          <div class="note" style="margin-top:14px">외부로 나가는 행동(견적 발송, 인계서 확정)은 반드시 담당자 승인을 거칩니다.</div>
+        </div>
+      </div>
+      <div class="actions"><span></span><button class="btn primary" id="go2" disabled onclick="go(2)">식별 시작 →</button></div>
+    </section>
+
+    <!-- ========== 2. 식별 결과 ========== -->
+    <section class="screen" id="s2">
+      <div class="topbar"><div><h1>① 식별 결과</h1><div class="sub">세션 RS-2026-1105-017 · 프레임 24장 분석 · 소요 6.8초</div></div><span class="pill blue">신뢰도 0.91</span></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>탐지 결과 (프레임 12 / 24)</h2>
+          <div class="frame">
+            <svg viewBox="0 0 400 300" preserveAspectRatio="none">
+              <defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#4b4741"/><stop offset="1" stop-color="#1f1d1a"/></linearGradient></defs>
+              <rect width="400" height="300" fill="url(#g1)"/>
+              <g fill="#8e9db3" opacity=".85">
+                <rect x="40" y="90" width="150" height="110" rx="8"/><rect x="200" y="70" width="150" height="130" rx="8"/><rect x="90" y="190" width="200" height="70" rx="8"/>
+              </g>
+              <g fill="#d9d4c7" opacity=".9"><rect x="60" y="120" width="28" height="14" rx="2"/><rect x="250" y="100" width="34" height="12" rx="2"/><rect x="140" y="200" width="26" height="12" rx="2"/></g>
+              <g fill="#b9b2a6"><circle cx="300" cy="230" r="9"/><circle cx="120" cy="240" r="7"/></g>
+            </svg>
+            <div class="bbox" style="left:10%;top:30%;width:37%;height:37%;border-color:#2a78d6"><b style="background:#2a78d6">PP 압축품 0.94</b></div>
+            <div class="bbox" style="left:50%;top:23%;width:37%;height:44%;border-color:#2a78d6"><b style="background:#2a78d6">PP 압축품 0.92</b></div>
+            <div class="bbox" style="left:14%;top:39%;width:8%;height:6%;border-color:#eb6834"><b style="background:#eb6834">테이프</b></div>
+            <div class="bbox" style="left:62%;top:33%;width:9%;height:5%;border-color:#eb6834"><b style="background:#eb6834">테이프</b></div>
+            <div class="bbox" style="left:34%;top:66%;width:7%;height:5%;border-color:#eb6834"><b style="background:#eb6834">라벨</b></div>
+            <div class="bbox" style="left:72%;top:73%;width:7%;height:8%;border-color:#e34948"><b style="background:#e34948">금속 혼입</b></div>
+          </div>
+          <div class="legend"><span><i style="background:#2a78d6"></i>품목</span><span><i style="background:#eb6834"></i>제거 가능 이물질</span><span><i style="background:#e34948"></i>금속 혼입</span></div>
+          <div class="row" style="margin-top:10px"><button class="btn ghost">◀ 이전 프레임</button><button class="btn ghost">다음 프레임 ▶</button><span class="muted">ByteTrack으로 24프레임의 같은 객체를 묶어 집계</span></div>
+        </div>
+        <div>
+          <div class="card">
+            <h2>집계</h2>
+            <dl class="kv">
+              <dt>품목</dt><dd><b>폐플라스틱 · PP (폴리프로필렌)</b></dd>
+              <dt>형태</dt><dd>압축품 (베일)</dd>
+              <dt>추정 수량</dt><dd>약 780 kg (부피 기반, ±15%)</dd>
+              <dt>이물질</dt><dd>
+                <div style="margin:4px 0 6px">테이프·라벨 <b>12%</b><div class="bar"><i style="width:12%;background:var(--orange)"></i></div></div>
+                <div>금속 혼입 <b>3%</b><div class="bar"><i style="width:3%;background:var(--red)"></i></div></div>
+              </dd>
+              <dt>성분표</dt><dd><span class="pill gray">없음</span> <span class="muted">PDF가 있으면 교차 검증합니다</span></dd>
+            </dl>
+          </div>
+          <div class="card">
+            <div class="agent"><div class="av">AI</div><div><p><b>두 가지만 더 알려 주세요.</b> 수량과 보관 상태에 따라 손익과 규정 판정이 달라집니다.</p></div></div>
+            <div class="field"><label>월 평균 배출량 (kg)</label><input id="q_qty" type="number" value="800"></div>
+            <div class="field"><label>현재 보관 상태</label><select id="q_store"><option>야외 야적 · 2주째</option><option>실내 보관 · 1주 이내</option><option>지붕 있는 야외 · 1개월 이상</option></select></div>
+            <div class="field"><label>현재 처리 방식</label><select><option>혼합 폐기물로 위탁 처리 (처리비 지불)</option><option>재활용업체에 매각</option><option>모름</option></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(1)">← 업로드</button><button class="btn primary" onclick="go(3)">답변 제출하고 판정 보기 →</button></div>
+    </section>
+
+    <!-- ========== 3. 판정 카드 ========== -->
+    <section class="screen" id="s3">
+      <div class="topbar"><div><h1>② 재활용 가능성 판정</h1><div class="sub">PP 압축품 · 월 800kg · 야외 야적 2주</div></div><span class="pill good">✔ 재활용 가능</span></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>지금 상태 → 작업 후</h2>
+          <div class="grid2" style="gap:10px">
+            <div class="tile" style="border-color:#f3c9c9;background:#fff7f7"><div class="lbl">현재 (혼합 폐기물 위탁)</div><div class="val money-neg">−250원<span class="muted" style="font-size:14px;font-weight:400">/kg</span></div><div class="muted">월 −200,000원 지출</div></div>
+            <div class="tile" style="border-color:#c9e6c9;background:#f6fcf6"><div class="lbl">테이프·라벨 제거 후 매각</div><div class="val money-pos">+300원<span class="muted" style="font-size:14px;font-weight:400">/kg</span></div><div class="muted">월 +240,000원 수익</div></div>
+          </div>
+          <div style="position:relative;margin-top:14px">
+            <svg class="viz" id="tipchart" viewBox="0 0 520 190" width="100%" aria-label="kg당 손익 전환 차트">
+              <!-- 축 -->
+              <line class="gl" x1="60" x2="500" y1="40" y2="40"/>
+              <line class="gl" x1="60" x2="500" y1="150" y2="150"/>
+              <line class="ax" x1="60" x2="500" y1="95" y2="95" stroke-width="1.5"/>
+              <text x="54" y="44" text-anchor="end">+300</text>
+              <text x="54" y="99" text-anchor="end">0</text>
+              <text x="54" y="154" text-anchor="end">−300</text>
+              <!-- 막대: 현재 -250 / 테이프 제거 +60 / 라벨·세척 +300 (단위 원/kg, 스케일 300=55px) -->
+              <g class="mk" data-tip="현재 · 혼합 위탁 −250원/kg"><rect x="90" y="95" width="80" height="46" fill="#e34948" rx="0"/><rect x="90" y="137" width="80" height="4" rx="2" fill="#e34948"/><text x="130" y="170" text-anchor="middle">현재</text><text x="130" y="88" text-anchor="middle" font-weight="700" fill="#0b0b0b">−250</text></g>
+              <g class="mk" data-tip="테이프만 제거 · 저급 매각 +60원/kg"><rect x="230" y="84" width="80" height="11" fill="#2a78d6"/><rect x="230" y="84" width="80" height="4" rx="2" fill="#2a78d6"/><text x="270" y="170" text-anchor="middle">테이프 제거</text><text x="270" y="78" text-anchor="middle" font-weight="700" fill="#0b0b0b">+60</text></g>
+              <g class="mk" data-tip="테이프+라벨 제거, 압축 베일 매각 +300원/kg"><rect x="370" y="40" width="80" height="55" fill="#2a78d6"/><rect x="370" y="40" width="80" height="4" rx="2" fill="#2a78d6"/><text x="410" y="170" text-anchor="middle">테이프+라벨 제거</text><text x="410" y="34" text-anchor="middle" font-weight="700" fill="#0b0b0b">+300</text></g>
+              <text x="500" y="186" text-anchor="end" fill="#898781">단위: 원/kg · 가격조사 2026-10 부산권역 PP 압축품 기준</text>
+            </svg>
+            <div class="tip" id="tip"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="border-color:#bcd4f5">
+            <h2>권고 작업 1건</h2>
+            <div style="font-size:17px;font-weight:700;margin-bottom:6px">테이프와 라벨을 제거하세요</div>
+            <dl class="kv">
+              <dt>예상 작업</dt><dd>1인 · 약 3시간 / 월</dd>
+              <dt>작업 비용</dt><dd class="money-neg">−45,000원 / 월</dd>
+              <dt>효과</dt><dd class="money-pos">+440,000원 / 월 (처리비 절감 + 매각 수익)</dd>
+              <dt>순효과</dt><dd><b>+395,000원 / 월</b></dd>
+            </dl>
+            <div class="note" style="margin-top:10px">금속 혼입 3%는 수거 업체가 현장에서 선별 가능한 수준이라 별도 작업을 권하지 않습니다. 5%를 넘으면 매입 거절 기준에 걸립니다.</div>
+          </div>
+          <div class="card">
+            <h2>판정 근거</h2>
+            <ul style="margin:0;padding-left:18px;font-size:14px;color:var(--ink2);line-height:1.8">
+              <li>PP 압축품은 부산권역 매각 단가가 형성되어 있음 (가격조사 2026-10: 300원/kg)</li>
+              <li>이물질 12%는 업체 매입 기준(10% 이하) 초과 → 제거 시 기준 충족</li>
+              <li>야외 야적 2주는 수분·오염 가중 요인. 지붕 아래 보관 권장</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(2)">← 식별 결과</button><button class="btn primary" onclick="go(4)">규정 검토 →</button></div>
+    </section>
+
+    <!-- ========== 4. 규정 카드 ========== -->
+    <section class="screen" id="s4">
+      <div class="topbar"><div><h1>③ 규정 검토</h1><div class="sub">순환경제사회 전환 촉진법 · 폐기물관리법 기준</div></div><span class="pill warn">⚠ 폐기물로 처리 · 인정 신청 가능</span></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>결론</h2>
+          <div style="font-size:15px;line-height:1.7">
+            현재 상태의 PP 압축품은 <b>순환자원 지정 고시 품목에 해당하지 않으므로</b> 폐기물관리법에 따라 허가 업체에 위탁해야 합니다.
+            다만 <b>이물질 제거 후 순환자원 인정 신청이 가능</b>하며, 같은 단지 기업과의 <b>공동처리</b>는 시행규칙에 따라 허용됩니다.
+          </div>
+          <h3>체크리스트</h3>
+          <div class="check"><span class="ic no">✕</span><div>순환자원 <b>지정 고시 품목</b> 해당 여부 — 해당 없음 (고시 목록: 폐지·고철·폐유리·알루미늄 등)
+            <details class="cite"><summary>근거 조문 보기</summary><blockquote>순환경제사회 전환 촉진법 제21조(순환자원의 지정 등) ① 환경부장관은 … 폐기물 중 … 순환자원으로 지정·고시할 수 있다.</blockquote><span class="muted">환경부 고시 제2024-○○호 순환자원 지정 품목</span></details></div></div>
+          <div class="check"><span class="ic ok">✓</span><div>사람의 건강과 환경에 유해하지 않을 것 — PP 단일 재질, 유해물질 미검출
+            <details class="cite"><summary>근거 조문 보기</summary><blockquote>순환경제사회 전환 촉진법 시행령 제○조(순환자원 인정 기준) 1. 사람의 건강이나 환경에 유해하지 아니할 것</blockquote></details></div></div>
+          <div class="check"><span class="ic ok">✓</span><div>유상 거래가 가능하고 방치될 우려가 없을 것 — 부산권역 매각 단가 형성</div></div>
+          <div class="check"><span class="ic q">?</span><div>이물질·중금속 기준 충족 — <b>이물질 분석표 필요</b> (현재 영상 추정 12%)</div></div>
+          <div class="check"><span class="ic ok">✓</span><div>사업장폐기물 공동처리 가능 — 같은 산업단지 내 배출자 공동 수집·운반·처리
+            <details class="cite"><summary>근거 조문 보기</summary><blockquote>폐기물관리법 시행규칙 제21조(사업장폐기물의 공동처리 등) ① … 같은 산업단지 … 의 사업장폐기물 배출자는 공동으로 … 운영기구를 설치하고 … 대표자를 선정하여 … 신고하여야 한다.</blockquote></details></div></div>
+          <div class="check"><span class="ic q">?</span><div>보관 기간 준수 — 현재 2주, 법정 보관 기간 이내. <span class="muted">기한 도래 전 수거 일정 확정 필요</span></div></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="agent"><div class="av">AI</div><div><p><b>이물질 분석표가 있습니까?</b> 분석표가 있으면 인정 신청 가능 여부를 지금 확정할 수 있습니다. 없으면 폐기물로 처리하고, 다음 배출분부터 분석 후 신청하는 경로를 제안합니다.</p>
+              <div class="row"><button class="btn" onclick="toast('분석표 없음으로 기록. 폐기물 경로로 진행합니다.')">없음</button><button class="btn" onclick="toast('PDF 업로드 화면은 목업에서 생략')">PDF 업로드</button></div></div></div>
+          </div>
+          <div class="card">
+            <h2>배출자 책임 점검</h2>
+            <div class="check"><span class="ic ok">✓</span><div>위탁 후보 업체 3곳 모두 <b>폐합성수지류 수집·운반 허가</b> 보유 (공공데이터 허가업체현황 대조)</div></div>
+            <div class="check"><span class="ic q">?</span><div>후보 업체 중 1곳은 허용보관량 정보 미등록 — 매칭 단계에서 경고 표시</div></div>
+          </div>
+          <div class="card">
+            <h2>이 판정이 바뀌는 경우</h2>
+            <ul style="margin:0;padding-left:18px;font-size:14px;color:var(--ink2);line-height:1.8">
+              <li>순환자원 지정 고시에 폐플라스틱(PP)이 추가되면 → 폐기물 규제 면제, 자동 재판정 알림</li>
+              <li>이물질 분석 결과 10% 이하 → 인정 신청서 자동 생성</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(3)">← 판정 카드</button><button class="btn primary" onclick="go(5)">수거 업체·묶음 찾기 →</button></div>
+    </section>
+
+    <!-- ========== 5. 매칭 ========== -->
+    <section class="screen" id="s5">
+      <div class="topbar"><div><h1>④ 묶음 수거 매칭</h1><div class="sub">녹산국가산업단지 · 반경 2km · 폐플라스틱(PP)</div></div><span class="pill crit">단독 수거 불가 · 최소 2톤</span></div>
+      <div class="card" style="padding:14px">
+        <div class="map" id="map">
+          <svg viewBox="0 0 900 420" preserveAspectRatio="xMidYMid slice">
+            <defs><pattern id="blk" width="60" height="40" patternUnits="userSpaceOnUse"><rect width="58" height="38" fill="#e4e8dd" stroke="#d7dccf"/></pattern></defs>
+            <rect width="900" height="420" fill="#eef1ea"/>
+            <rect x="0" y="0" width="900" height="420" fill="url(#blk)" opacity=".8"/>
+            <!-- 도로 -->
+            <g stroke="#ffffff" stroke-width="10" stroke-linecap="round"><line x1="0" y1="210" x2="900" y2="210"/><line x1="300" y1="0" x2="300" y2="420"/><line x1="620" y1="0" x2="620" y2="420"/><line x1="0" y1="90" x2="900" y2="90"/><line x1="0" y1="330" x2="900" y2="330"/></g>
+            <g stroke="#cfd5c6" stroke-width="12" fill="none" opacity=".9"><path d="M0 395 Q 450 430 900 380"/></g>
+            <text x="20" y="412" fill="#7b8a7a" font-size="12">낙동강 하구 방향</text>
+            <text x="310" y="20" fill="#7b8a7a" font-size="12">녹산산단 335로</text>
+            <!-- 묶음 경로 -->
+            <g stroke="#2a78d6" stroke-width="2" stroke-dasharray="6 5" fill="none"><path d="M330 160 L 450 250 L 560 150 L 760 260"/></g>
+            <!-- 내 공장 -->
+            <g class="mk" data-tip="(주)한빛정밀 · 내 공장 · PP 780kg"><circle cx="330" cy="160" r="20" fill="#2a78d6" opacity=".18"/><circle cx="330" cy="160" r="10" fill="#2a78d6" stroke="#fff" stroke-width="2"/><text x="330" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#0b0b0b">내 공장</text></g>
+            <!-- 묶음 기업 (익명) -->
+            <g class="mk" data-tip="단지 내 기업 A · PP 압축품 920kg · 거리 0.6km"><circle cx="450" cy="250" r="9" fill="#1baf7a" stroke="#fff" stroke-width="2"/><text x="450" y="274" text-anchor="middle" font-size="11" fill="#0b0b0b">기업 A · 920kg</text></g>
+            <g class="mk" data-tip="단지 내 기업 B · PP 압축품 710kg · 거리 1.1km"><circle cx="560" cy="150" r="9" fill="#1baf7a" stroke="#fff" stroke-width="2"/><text x="560" y="134" text-anchor="middle" font-size="11" fill="#0b0b0b">기업 B · 710kg</text></g>
+            <!-- 후보였으나 제외 -->
+            <g class="mk" data-tip="단지 내 기업 C · PE 혼합 · 품목 불일치로 제외"><circle cx="180" cy="280" r="8" fill="#c3c2b7" stroke="#fff" stroke-width="2"/><text x="180" y="300" text-anchor="middle" font-size="11" fill="#898781">기업 C (품목 불일치)</text></g>
+            <!-- 업체 -->
+            <g class="mk" data-tip="수거업체 ㈜녹산리사이클 · 최소 2톤 · 허가 ✓"><rect x="748" y="248" width="24" height="24" rx="5" fill="#eb6834" stroke="#fff" stroke-width="2"/><text x="760" y="290" text-anchor="middle" font-size="11" fill="#0b0b0b">㈜녹산리사이클</text></g>
+            <g class="mk" data-tip="수거업체 B · 최소 3톤 · 허용보관량 미등록 ⚠"><rect x="100" y="60" width="24" height="24" rx="5" fill="#eb6834" stroke="#fff" stroke-width="2"/><text x="112" y="102" text-anchor="middle" font-size="11" fill="#0b0b0b">수거업체 B ⚠</text></g>
+          </svg>
+          <div class="panel">
+            <h4>묶음 제안 #1 <span class="pill good" style="margin-left:6px">성립</span></h4>
+            <table class="t" style="font-size:13px">
+              <tr><td>내 공장</td><td class="num">780 kg</td></tr>
+              <tr><td>기업 A (익명)</td><td class="num">920 kg</td></tr>
+              <tr><td>기업 B (익명)</td><td class="num">710 kg</td></tr>
+              <tr><th>합산</th><th class="num">2,410 kg ≥ 2,000</th></tr>
+            </table>
+            <div style="margin-top:8px;font-size:13px">수거업체: ㈜녹산리사이클 · 11/12(수) · 경로 2.9km<br>예상 단가 <b class="money-pos">300원/kg</b> · 운송비 분담 <b>물량 비례</b></div>
+            <div class="row" style="margin-top:10px"><button class="btn primary" style="padding:8px 12px" onclick="toast('묶음 제안이 기업 A·B에 발송되었습니다 (익명). 동의 2/2 시 성립.')">묶음 제안 보내기</button></div>
+          </div>
+        </div>
+        <div class="maplegend"><span><i style="background:#2a78d6"></i>내 공장</span><span><i style="background:#1baf7a"></i>묶음 후보 기업(익명)</span><span><i style="background:#c3c2b7"></i>제외된 기업</span><span><i style="background:#eb6834;border-radius:3px"></i>수거·재활용 업체</span><span class="muted">점선: 수거 경로 (Azure Maps 도로 거리)</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>왜 단독 수거가 안 되나</h2>
+          <p style="margin:0;font-size:14px;color:var(--ink2);line-height:1.7">반경 2km 안의 허가 업체 2곳 모두 최소 수거 물량이 <b>2톤 이상</b>입니다. 내 공장 월 배출량 780kg으로는 단독 수거 요청 시 거절되거나 회당 방문 수수료가 붙습니다.</p>
+        </div>
+        <div class="card">
+          <h2>동의와 공개 범위</h2>
+          <p style="margin:0;font-size:14px;color:var(--ink2);line-height:1.7">기업 A·B에는 내 회사명이 보이지 않습니다. 양쪽이 동의하면 그때 회사명이 서로 공개되고, 공동처리 운영기구 신고서가 자동 생성됩니다.</p>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(4)">← 규정 검토</button><button class="btn primary" onclick="go(6)">비용·탄소 비교 →</button></div>
+    </section>
+
+    <!-- ========== 6. 비용·탄소 비교 ========== -->
+    <section class="screen" id="s6">
+      <div class="topbar"><div><h1>⑤ 비용 · 탄소 비교</h1><div class="sub">월 800kg 기준 · 운송 배출 포함 순 탄소</div></div><span class="pill blue">추천: 묶음 재활용</span></div>
+      <div class="card">
+        <table class="t">
+          <thead><tr><th>처리 경로</th><th class="num">월 비용 (−) / 수익 (+)</th><th class="num">순 탄소 (tCO₂e/월)</th><th class="num">KAU 환산</th><th>실행 조건</th></tr></thead>
+          <tbody>
+            <tr class="rec"><td><b>A. 묶음 재활용</b> <span class="pill good" style="margin-left:6px">추천</span><div class="muted">테이프·라벨 제거 → 3개사 묶음 → ㈜녹산리사이클 매각</div></td><td class="num money-pos">+195,000원</td><td class="num">−1.20</td><td class="num">+10,800원</td><td>기업 A·B 동의, 제거 작업 3시간</td></tr>
+            <tr><td><b>B. 단독 재활용</b><div class="muted">제거 후 수거업체 B 단독 요청</div></td><td class="num money-pos">+52,000원</td><td class="num">−1.05</td><td class="num">+9,450원</td><td>최소 물량 미달 · 방문 수수료 · 대기 3주+</td></tr>
+            <tr><td><b>C. 현행 유지 (혼합 소각)</b></td><td class="num money-neg">−200,000원</td><td class="num">+0.62</td><td class="num">−5,580원</td><td>없음</td></tr>
+            <tr><td><b>D. 매립</b></td><td class="num money-neg">−184,000원</td><td class="num">+0.41</td><td class="num">−3,690원</td><td>수도권 외 매립 가능 지역 운송 필요</td></tr>
+          </tbody>
+        </table>
+        <div class="muted" style="margin-top:8px">A와 C의 차이: 월 <b>395,000원</b>, 연 474만 원 · 탄소 1.82 tCO₂e/월</div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>경로별 순 탄소 (tCO₂e / 월)</h2>
+          <div style="position:relative">
+            <svg class="viz" id="co2chart" viewBox="0 0 520 170" width="100%" aria-label="경로별 순 탄소">
+              <line class="ax" x1="230" x2="230" y1="14" y2="150" stroke-width="1.5"/>
+              <!-- 스케일: 1.2t = 180px → 150px/t -->
+              <g class="mk" data-tip="A 묶음 재활용 −1.20 t"><rect x="50" y="20" width="180" height="20" fill="#2a78d6"/><rect x="50" y="20" width="4" height="20" rx="2" fill="#2a78d6"/><text x="44" y="35" text-anchor="end" font-weight="700" fill="#0b0b0b">−1.20</text><text x="236" y="35">A 묶음 재활용</text></g>
+              <g class="mk" data-tip="B 단독 재활용 −1.05 t"><rect x="72" y="50" width="158" height="20" fill="#2a78d6"/><rect x="72" y="50" width="4" height="20" rx="2" fill="#2a78d6"/><text x="66" y="65" text-anchor="end" font-weight="700" fill="#0b0b0b">−1.05</text><text x="236" y="65">B 단독 재활용</text></g>
+              <g class="mk" data-tip="C 혼합 소각 +0.62 t"><rect x="230" y="80" width="93" height="20" fill="#e34948"/><rect x="319" y="80" width="4" height="20" rx="2" fill="#e34948"/><text x="329" y="95" font-weight="700" fill="#0b0b0b">+0.62</text><text x="372" y="95">C 혼합 소각</text></g>
+              <g class="mk" data-tip="D 매립 +0.41 t"><rect x="230" y="110" width="62" height="20" fill="#e34948"/><rect x="288" y="110" width="4" height="20" rx="2" fill="#e34948"/><text x="298" y="125" font-weight="700" fill="#0b0b0b">+0.41</text><text x="341" y="125">D 매립</text></g>
+              <text x="50" y="162" fill="#898781">← 회피 배출 (절감)</text><text x="500" y="162" text-anchor="end" fill="#898781">추가 배출 →</text>
+            </svg>
+            <div class="tip" id="tip2"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>계산 가정 (그대로 공개)</h2>
+          <table class="t" style="font-size:13px">
+            <tr><td>매각 단가</td><td>가격조사 2026-10, 부산권역 PP 압축품 300원/kg</td></tr>
+            <tr><td>처리비</td><td>혼합 사업장폐기물 톤당 250,000원 (업체 인터뷰 평균)</td></tr>
+            <tr><td>운송</td><td>Azure Maps 도로 거리 2.9km, 5톤 차량, 분담 물량 비례</td></tr>
+            <tr><td>탄소</td><td>신재 PP 대비 회피 배출 1.5 tCO₂e/t, 소각 0.78, 매립 0.51, 운송 0.12 kg/km·t</td></tr>
+            <tr><td>KAU</td><td>2026-11-04 종가 9,000원/t (가정)</td></tr>
+          </table>
+          <div class="muted" style="margin-top:6px">매립 대비·신재 대비 두 방식 모두 계산하며, 표는 신재 대비 기준입니다.</div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(5)">← 매칭</button><button class="btn primary" onclick="go(7)">최적안 선택 →</button></div>
+    </section>
+
+    <!-- ========== 7. 최적안·문서 ========== -->
+    <section class="screen" id="s7">
+      <div class="topbar"><div><h1>⑥ 최적안과 문서</h1><div class="sub">추천안을 고르면 서류 초안이 생성됩니다. 발송은 승인 후에만.</div></div><span class="pill gray" id="apprstate">승인 대기</span></div>
+      <div class="grid3">
+        <div class="card" style="border:2px solid var(--blue)">
+          <span class="pill blue">추천</span>
+          <h2 style="margin-top:8px">A. 묶음 재활용</h2>
+          <div class="money-pos" style="font-size:22px">+195,000원 / 월</div>
+          <div class="muted">탄소 −1.20 t · 수거 11/12(수)</div>
+          <ul style="padding-left:18px;font-size:13.5px;color:var(--ink2);margin:10px 0 0;line-height:1.7"><li>테이프·라벨 제거 (3시간)</li><li>기업 A·B 동의 (익명 제안 발송됨)</li><li>공동처리 운영기구 신고</li></ul>
+        </div>
+        <div class="card">
+          <span class="pill gray">대안 1</span>
+          <h2 style="margin-top:8px">B. 단독 재활용</h2>
+          <div class="money-pos" style="font-size:22px">+52,000원 / 월</div>
+          <div class="muted">탄소 −1.05 t · 대기 3주 이상</div>
+          <ul style="padding-left:18px;font-size:13.5px;color:var(--ink2);margin:10px 0 0;line-height:1.7"><li>묶음 동의가 안 될 때</li><li>방문 수수료 20,000원/회</li></ul>
+        </div>
+        <div class="card">
+          <span class="pill gray">대안 2</span>
+          <h2 style="margin-top:8px">C. 현행 유지</h2>
+          <div class="money-neg" style="font-size:22px">−200,000원 / 월</div>
+          <div class="muted">탄소 +0.62 t</div>
+          <ul style="padding-left:18px;font-size:13.5px;color:var(--ink2);margin:10px 0 0;line-height:1.7"><li>작업 없음</li><li>보관 기한 내 위탁 필요</li></ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tabs">
+          <button class="on" onclick="docTab(this,'d1')">견적 요청서</button>
+          <button onclick="docTab(this,'d2')">폐기물 인계서 초안</button>
+          <button onclick="docTab(this,'d3')">공동처리 신고서</button>
+        </div>
+        <div class="doc" id="d1">
+          <h4>폐합성수지(PP) 공동 수거 견적 요청서</h4>
+          <table><tr><th style="width:140px">수신</th><td>㈜녹산리사이클 영업팀</td></tr><tr><th>발신</th><td>녹산단지 PP 공동처리 운영기구 (대표: (주)한빛정밀)</td></tr><tr><th>품목</th><td>폐플라스틱 · PP 압축품(베일), 이물질 10% 이하 (테이프·라벨 제거 완료 예정)</td></tr><tr><th>물량</th><td>총 2,410 kg (3개 사업장, 월 1회 정기)</td></tr><tr><th>수거 희망일</th><td>2026-11-12(수) 오전</td></tr><tr><th>요청 사항</th><td>kg당 매입 단가, 운송비 포함 여부, 이물질 기준, 계근 방식</td></tr><tr><th>첨부</th><td>현장 사진 4매, 식별 리포트 RS-2026-1105-017</td></tr></table>
+          <p class="muted" style="margin:10px 0 0">본 문서는 AI가 생성한 초안이며 담당자 확인 후 발송됩니다.</p>
+        </div>
+        <div class="doc" id="d2" style="display:none">
+          <h4>사업장폐기물 인계서 (초안)</h4>
+          <table><tr><th style="width:140px">배출자</th><td>(주)한빛정밀 · 부산 강서구 녹산산단 ○○로</td></tr><tr><th>폐기물 종류</th><td>폐합성수지류 (51-03-01)</td></tr><tr><th>수량</th><td>780 kg (계근 후 확정)</td></tr><tr><th>운반자</th><td>㈜녹산리사이클 (수집·운반 허가 제○○호)</td></tr><tr><th>처리자</th><td>㈜녹산리사이클 (중간재활용)</td></tr><tr><th>인계일</th><td>2026-11-12</td></tr></table>
+          <p class="muted" style="margin:10px 0 0">올바로 시스템 전자인계서 항목에 맞춰 생성. 계근 수량 확정 후 제출.</p>
+        </div>
+        <div class="doc" id="d3" style="display:none">
+          <h4>사업장폐기물 공동처리 운영기구 설치 신고서 (초안)</h4>
+          <table><tr><th style="width:140px">근거</th><td>폐기물관리법 시행규칙 제21조</td></tr><tr><th>운영기구 명칭</th><td>녹산단지 PP 공동처리 운영기구</td></tr><tr><th>대표자</th><td>(주)한빛정밀 (동의 후 확정)</td></tr><tr><th>참여 사업장</th><td>(주)한빛정밀, 기업 A, 기업 B (동의 시 상호 공개)</td></tr><tr><th>공동처리 폐기물</th><td>폐합성수지류 (PP), 월 약 2.4톤</td></tr><tr><th>수집·운반·처리 위탁</th><td>㈜녹산리사이클</td></tr></table>
+          <p class="muted" style="margin:10px 0 0">참여 기업 전원 동의 후 관할 구청에 제출. 조문 번호는 국가법령정보센터 현행 조문으로 최종 확인.</p>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(6)">← 비교표</button><div class="row"><button class="btn" onclick="toast('초안을 PDF로 저장했습니다 (목업)')">PDF 저장</button><button class="btn primary" id="apprbtn" onclick="openModal()">내용 확인 후 승인 · 발송</button></div></div>
+    </section>
+
+    <!-- ========== 8. 대시보드 ========== -->
+    <section class="screen" id="s8">
+      <div class="topbar"><div><h1>대시보드</h1><div class="sub">(주)한빛정밀 · 2026년 누적</div></div><span class="pill good">✔ 발송 완료 · 동의 대기 2건</span></div>
+      <div class="grid3">
+        <div class="tile"><div class="lbl">누적 절감 비용</div><div class="val">1,842,000원</div><div class="delta">▲ 이번 달 +395,000원</div></div>
+        <div class="tile"><div class="lbl">누적 절감 탄소</div><div class="val">6.3 tCO₂e</div><div class="delta">▲ 이번 달 +1.82 t</div></div>
+        <div class="tile"><div class="lbl">재활용 전환율</div><div class="val">71%</div><div class="delta">▲ 전월 58%</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>월별 절감 비용 (원)</h2>
+          <div style="position:relative">
+            <svg class="viz" id="trend" viewBox="0 0 520 200" width="100%" aria-label="월별 절감 비용 추이">
+              <g class="gl"><line x1="50" x2="500" y1="30" y2="30"/><line x1="50" x2="500" y1="80" y2="80"/><line x1="50" x2="500" y1="130" y2="130"/></g>
+              <line class="ax" x1="50" x2="500" y1="180" y2="180"/>
+              <text x="44" y="34" text-anchor="end">40만</text><text x="44" y="84" text-anchor="end">20만</text><text x="44" y="184" text-anchor="end">0</text>
+              <!-- 6~11월: 0, 12, 21, 26, 31, 39.5 (만원) → y = 180 - v*3.75 -->
+              <polyline fill="none" stroke="#2a78d6" stroke-width="2" points="80,180 164,135 248,101 332,82 416,64 500,32"/>
+              <g fill="#2a78d6" stroke="#fcfcfb" stroke-width="2">
+                <circle class="mk" data-tip="6월 · 0원" cx="80" cy="180" r="5"/><circle class="mk" data-tip="7월 · 120,000원" cx="164" cy="135" r="5"/><circle class="mk" data-tip="8월 · 210,000원" cx="248" cy="101" r="5"/><circle class="mk" data-tip="9월 · 260,000원" cx="332" cy="82" r="5"/><circle class="mk" data-tip="10월 · 310,000원" cx="416" cy="64" r="5"/><circle class="mk" data-tip="11월 · 395,000원" cx="500" cy="32" r="5"/>
+              </g>
+              <text x="500" y="22" text-anchor="end" font-weight="700" fill="#0b0b0b">39.5만</text>
+              <g text-anchor="middle"><text x="80" y="196">6월</text><text x="164" y="196">7월</text><text x="248" y="196">8월</text><text x="332" y="196">9월</text><text x="416" y="196">10월</text><text x="500" y="196">11월</text></g>
+            </svg>
+            <div class="tip" id="tip3"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>처리 이력</h2>
+          <table class="t" style="font-size:13.5px">
+            <thead><tr><th>일자</th><th>품목</th><th>경로</th><th class="num">손익</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td>11/05</td><td>PP 압축품 780kg</td><td>묶음 재활용</td><td class="num money-pos">+195,000</td><td><span class="pill warn">동의 대기</span></td></tr>
+              <tr><td>10/08</td><td>PP 압축품 760kg</td><td>단독 재활용</td><td class="num money-pos">+48,000</td><td><span class="pill good">완료</span></td></tr>
+              <tr><td>09/10</td><td>포장재(골판지) 420kg</td><td>매각</td><td class="num money-pos">+37,800</td><td><span class="pill good">완료</span></td></tr>
+              <tr><td>08/12</td><td>금속 스크랩 210kg</td><td>매각</td><td class="num money-pos">+84,000</td><td><span class="pill good">완료</span></td></tr>
+              <tr><td>07/09</td><td>PP 혼합 800kg</td><td>혼합 소각</td><td class="num money-neg">−200,000</td><td><span class="pill gray">완료</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>다음에 할 수 있는 것</h2>
+        <div class="row">
+          <span class="pill blue">📄 협력사 ESG 자가진단 보고서 생성</span>
+          <span class="pill blue">🔔 순환자원 고시 변경 시 재판정 알림</span>
+          <span class="pill blue">📅 12월 배출 예보 · 수거 사전 계약</span>
+          <span class="pill blue">🏭 업체 측 화면: 단지 내 묶음 조회</span>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" onclick="go(7)">← 최적안</button><button class="btn" onclick="reset()">처음부터 다시</button></div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 style="margin:0 0 8px">발송 전 확인</h3>
+    <p style="margin:0 0 12px;font-size:14px;color:var(--ink2)">아래 항목이 외부로 발송됩니다. 승인 후에는 수거업체와 기업 A·B에 메일이 전달됩니다.</p>
+    <div class="check"><span class="ic ok">✓</span><div>견적 요청서 → ㈜녹산리사이클</div></div>
+    <div class="check"><span class="ic ok">✓</span><div>묶음 참여 제안 (익명) → 기업 A, 기업 B</div></div>
+    <div class="check"><span class="ic q">?</span><div>공동처리 신고서 — 동의 완료 후 별도 승인</div></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">취소</button><button class="btn primary" onclick="approve()">승인하고 발송</button></div>
+  </div>
+</div>
+
+<script>
+  const total=8; let cur=1; const done=new Set();
+  function go(n){
+    if(n>cur) done.add(cur);
+    cur=n;
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='s'+n));
+    document.querySelectorAll('#steps li').forEach(li=>{
+      const k=+li.dataset.s; li.classList.toggle('active',k===n); li.classList.toggle('done',done.has(k)&&k!==n);
+    });
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('#steps li').forEach(li=>li.addEventListener('click',()=>go(+li.dataset.s)));
+  function reset(){done.clear();document.getElementById('thumbs').innerHTML='';document.getElementById('prog').style.display='none';document.getElementById('progtxt').textContent='';document.getElementById('go2').disabled=true;document.getElementById('apprstate').textContent='승인 대기';document.getElementById('apprstate').className='pill gray';go(1);}
+  function mockUpload(){
+    const t=document.getElementById('thumbs'); t.innerHTML='';
+    const grads=['linear-gradient(135deg,#6b7a8f,#3a3f48)','linear-gradient(135deg,#7d8ba0,#2f343c)','linear-gradient(135deg,#8c97a8,#3b4049)','linear-gradient(135deg,#5f6b7d,#23272e)'];
+    ['IMG_0412.jpg','IMG_0413.jpg','IMG_0414.jpg','VID_0415.mp4 · 0:24'].forEach((n,i)=>{const d=document.createElement('div');d.className='thumb';d.style.background=grads[i];d.innerHTML='<span>'+n+'</span>';t.appendChild(d);});
+    const p=document.getElementById('prog'),b=document.getElementById('progbar'),tx=document.getElementById('progtxt');
+    p.style.display='block';b.style.width='0';tx.textContent='업로드 중…';
+    setTimeout(()=>{b.style.width='100%';},50);
+    setTimeout(()=>{tx.textContent='업로드 완료 · 세션 RS-2026-1105-017 생성 · 프레임 24장 추출';document.getElementById('go2').disabled=false;},800);
+  }
+  function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+  function docTab(btn,id){document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');['d1','d2','d3'].forEach(k=>document.getElementById(k).style.display=k===id?'block':'none');}
+  function openModal(){document.getElementById('modal').classList.add('show');}
+  function closeModal(){document.getElementById('modal').classList.remove('show');}
+  function approve(){closeModal();const s=document.getElementById('apprstate');s.textContent='✔ 승인 · 발송 완료';s.className='pill good';document.getElementById('apprbtn').disabled=true;toast('견적 요청서와 묶음 제안을 발송했습니다. 대시보드에 기록됩니다.');setTimeout(()=>go(8),1200);}
+  // 차트 툴팁
+  function bindTips(svgId,tipId){const svg=document.getElementById(svgId),tip=document.getElementById(tipId);if(!svg)return;
+    svg.querySelectorAll('.mk').forEach(m=>{m.addEventListener('mousemove',e=>{const r=svg.parentElement.getBoundingClientRect();tip.style.display='block';tip.textContent=m.dataset.tip;tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top-30)+'px';});m.addEventListener('mouseleave',()=>tip.style.display='none');});}
+  bindTips('tipchart','tip');bindTips('co2chart','tip2');bindTips('trend','tip3');
+  // 지도 툴팁
+  (function(){const map=document.getElementById('map');const tip=document.createElement('div');tip.className='tip';map.appendChild(tip);
+    map.querySelectorAll('.mk').forEach(m=>{m.addEventListener('mousemove',e=>{const r=map.getBoundingClientRect();tip.style.display='block';tip.textContent=m.dataset.tip;tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top-30)+'px';});m.addEventListener('mouseleave',()=>tip.style.display='none');});})();
+  // URL 해시로 화면 열기 (스크린샷용)
+  const h=parseInt(location.hash.replace('#s',''));
+  if(h>=1&&h<=8){for(let i=1;i<h;i++)done.add(i);if(h>1){document.getElementById('go2').disabled=false;}go(h);}else{go(1);}
+</script>
+</body>
+</html>
