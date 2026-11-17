@@ -1,6 +1,6 @@
 # 설계안 v3 구현 상태
 
-작성일: 2026-11-17
+작성일: 2026-11-17 (2026-11-18 배포 결과 반영)
 
 설계안 v3 구현이 어디까지 됐는지, 구현하면서 무엇을 다르게 정했는지 적는다. 설계안 v3 원문 12장의 구현 상태 표는 구현을 시작하기 전(2026-11-16) 기준이다. 실제 상태는 이 문서를 따른다.
 
@@ -13,9 +13,11 @@
 
 ## 1. 한눈에 보기
 
-- 배출 기업과 업체가 자료를 올리고, 두 에이전트가 대화해 흐름별 업체 배정과 월 손익, 요청서와 이행 계획서까지 나오는 과정이 **로컬 서버에서 처음부터 끝까지 돈다.** Azure 배포 주소에서는 아직 돌려 보지 못했다.
-- 지금 대화를 쓰는 것은 모델이 아니라 **규칙 정책(모델 미연결)**이다. Foundry와 Ollama 모델을 붙이는 코드는 있지만 실제 모델로는 한 번도 돌리지 않았다. 화면에도 그렇게 표시된다.
-- 백엔드 테스트는 1,086개가 통과하고 4개는 건너뛴다(2026-11-17 main 기준, `uv sync --extra dev --extra mcp-server` 환경. 건너뛰는 것은 PostGIS, Agent Framework, Azure SDK, OpenTelemetry가 필요한 테스트다).
+- 배출 기업과 업체가 자료를 올리고, 두 에이전트가 대화해 흐름별 업체 배정과 월 손익, 요청서와 이행 계획서까지 나오는 과정이 **Azure 배포 주소(https://rsai-o7xpbty4q5vgs.centralus.cloudapp.azure.com)에서 처음부터 끝까지 돈다**(2026-11-18, 규칙 정책). 업체 세 곳이 4턴씩 대화해 합의하고 승인 대기까지 36.7초 걸렸다.
+- 배포는 App Service(할당량 0)와 Container Apps(공급자 미등록) 대신 Central US의 CPU VM 한 대에 Docker Compose로 했다(backend `infra/vm.bicep`, `infra/vm/`). DB와 같은 지역이라 DB 왕복은 0.9ms다.
+- 배포 주소의 대화는 **규칙 정책(모델 미연결)**이 쓴다. Foundry gpt-5-mini로 실제 호출을 해 보니(2026-11-18) 회사 측 초안이 근거 검증기에 두 번씩 거부되어(NUMBER_OUTSIDE_PLACEHOLDER, TYPE_NOT_ALLOWED, INVALID_OUTPUT) 대화가 모두 담당자 인계로 끝났다. 검증기는 근거 없는 숫자를 막았지만, 실제 모델로 시연하려면 프롬프트와 출력 형식을 고쳐야 한다.
+- Ollama(qwen2.5:7b, bge-m3)는 VM에서 CPU로 돈다(생성 초당 약 6토큰, 임베딩 1024차원). Ollama를 고른 업체가 실제로 Ollama로 답하는 것은 실제 모델 모드에서만이라 아직 대화에 쓰이지 않았다.
+- 백엔드 테스트는 1,171개가 통과하고 5개는 건너뛴다(2026-11-18 main 기준, `uv sync --extra dev --extra mcp-server` 환경. 건너뛰는 것은 PostGIS, Agent Framework, Azure SDK, OpenTelemetry, OpenCV가 필요한 테스트다).
 - 시연 시나리오에서 나간 메시지 15개와 문서 6개는 모두 근거 검증기를 통과했다. 사례 50건의 평가에서도 통과율 100%(102/102)였다.
 
 ## 2. 단계별 상태
@@ -24,27 +26,27 @@
 |---|---|---|
 | 0 | 환경 조사와 계획 | 끝남 |
 | 1 | 인프라(Bicep) | **일부.** VNet, 로그, ACR, Key Vault, Storage, PostgreSQL, Foundry와 gpt-5-mini, Document Intelligence, Content Safety, AI Search, Azure ML CPU 클러스터를 배포했다(backend PR #54, main 병합). Container Apps, Azure Maps, Fabric은 공급자 미등록으로, Ollama GPU VM은 할당량으로 **막힘** |
-| 1-1 | 첫 배포와 배포 경로 | **작성됨(미실행).** Container Apps가 막혀 App Service 대안(`infra/appservice.bicep`), `infra/deploy.sh`, GitHub Actions 배포 워크플로를 썼지만 한 번도 실행하지 못했다. 자동 배포는 OIDC 설정 뒤 저장소 변수 `DEPLOY_ENABLED`를 `true`로 둘 때만 돈다 |
+| 1-1 | 첫 배포와 배포 경로 | **검증됨:** 앱 VM 경로(`infra/vm.bicep`, `infra/vm/compose.yml`, `infra/vm/deploy-vm.sh`). Caddy(Let's Encrypt HTTPS), frontend, backend, detector, ollama를 띄우고, 비밀은 Key Vault에서 읽어 VM의 env 파일에만 쓴다. 인터넷에는 80·443만 열린다. **막힘:** App Service는 구독 할당량 0(B1·B2·F1·S1·P0v3 모두)이라 `infra/appservice.bicep`, `infra/deploy.sh`, GitHub Actions 배포 워크플로는 쓰지 않는다. 자동 배포는 OIDC 설정 뒤 저장소 변수 `DEPLOY_ENABLED`를 `true`로 둘 때만 돈다 |
 | 2 | 근거 저장소와 근거 검증기 | **검증됨:** 근거 레지스트리(메모리, 파일), 근거 검증기, 자리표시자 렌더링, 로컬 검색, 가정값 등록. 법령 26개 조항과 기준값 7건은 공개 출처에서 직접 읽어 넣었다. **작성됨(미실행):** PostgreSQL 저장, AI Search 색인, 법령 Open API 수집. **막힘:** Fabric Lakehouse |
-| 3 | 입력 세 경로 | **검증됨:** 측정값 CSV, 등급 규칙과 합성 데이터, 문서 추출값 정리와 사람 확인. **작성됨(미실행):** Document Intelligence, Prompt Shields, 등급 엔드포인트, 탐지 엔드포인트 호출, AutoML과 배포 정의. **안 함:** 탐지 모델 학습을 Azure ML로 옮기기 |
-| 4 | 판단 도구 MCP 서버 | **검증됨:** 판단 도구 10개(결정적 함수, calc 근거), 고정 사례 10건. **작성됨(미실행):** MCP 서버, OR-Tools 풀이, Azure Maps 도로 거리 |
+| 3 | 입력 세 경로 | **검증됨:** 측정값 CSV, 등급 규칙과 합성 데이터, 문서 추출값 정리와 사람 확인. **검증됨(배포 주소):** 탐지 엔드포인트 호출. Azure ML 엔드포인트 대신 같은 이미지의 탐지 채점 서버(`app/ml/score_api.py`, 재질 v3·상태 v4 가중치)를 VM 안에서 부른다(첫 호출 10.7초, 이후 1.1초). **작성됨(미실행):** Document Intelligence, Prompt Shields(앱에 연결할 설정이 아직 없다), 등급 엔드포인트, AutoML과 배포 정의. **안 함:** 탐지 모델 학습을 Azure ML로 옮기기 |
+| 4 | 판단 도구 MCP 서버 | **검증됨:** 판단 도구 11개(결정적 함수, calc 근거. 공정 재투입 judge_reuse 포함), 고정 사례 10건. **작성됨(미실행):** MCP 서버, OR-Tools 풀이, Azure Maps 도로 거리 |
 | 5 | 두 에이전트와 A2A 대화 | **검증됨:** 메시지와 스레드, 검증·재작성·handoff 고리, 가드레일, 질문 정책, 12턴 상한, 양쪽 승인, 조직 경계. 규칙 정책과 대본 모델로 확인했다. **작성됨(미실행):** Foundry·Ollama 호출, 별도 서비스로 띄우는 업체 측 에이전트, Agent Framework 어댑터와 Foundry Agent Service 등록, OpenTelemetry |
 | 6 | 화면 | **검증됨:** 진단·연결, 근거 패널, 자료 올리기, 승인, 관리자 화면을 로컬 백엔드에 붙여 조작해 봤다. DESIGN.md v3 화면 규칙은 main에 병합했다(PR #19) |
 | 7 | 재학습 | **검증됨:** 사람 교정과 업체의 실제 결과 기록, 내보내기, 배포 게이트 판정. **작성됨(미실행):** Azure ML 재학습 작업 |
-| 8 | 평가, 시연, 최종 배포 | **검증됨:** 사례 50건(전부 "초안"), 평가 리포트, 시연 데이터, 로컬에서 시나리오 두 번 연속 성공. **작성됨(미실행):** Foundry 평가 스크립트. **안 함:** 배포 주소에서의 시연과 Application Insights 확인 |
+| 8 | 평가, 시연, 최종 배포 | **검증됨:** 사례 50건(전부 "초안"), 평가 리포트, 시연 데이터, 로컬에서 시나리오 두 번 연속 성공. **검증됨(배포 주소):** 규칙 정책으로 시연 시나리오 1회(합의 3건, 승인 대기, 현행 대비 월 +654,500원·탄소 −4.41 tCO₂e는 가정값 기준). **작성됨(미실행):** Foundry 평가 스크립트. **안 함:** 실제 모델로 끝까지 가는 시연, Application Insights 확인(이미지에 azure-monitor-opentelemetry가 없어 추적이 꺼져 있다) |
 | 9 | 설계 문서 갱신 | 이 문서 |
 
 ## 3. 완료 기준에 비춘 상태
 
 | 완료 기준 | 상태 |
 |---|---|
-| 자료를 올리면 두 에이전트가 대화해 배정, 월 손익, 요청서와 이행 계획서까지 나온다. Azure 배포 주소에서 실제 호출로 동작한다 | 로컬에서만 동작한다. 배포 주소에서는 확인하지 못했다 |
+| 자료를 올리면 두 에이전트가 대화해 배정, 월 손익, 요청서와 이행 계획서까지 나온다. Azure 배포 주소에서 실제 호출로 동작한다 | 배포 주소에서 규칙 정책으로는 동작한다. 실제 모델(Foundry)로는 초안이 근거 검증기에 거부되어 담당자 인계로 끝난다 |
 | 화면에 6단계 진행 막대, 대화 타임라인, 판단 그래프, 결과 한 장, 근거 패널이 있고 모든 숫자와 조항이 근거 패널로 열린다 | 됐다 |
-| 근거 검증기 통과율 100%. 통과하지 못한 숫자와 조항은 화면과 문서에 나오지 않는다 | 규칙 정책 기준으로 됐다. 실제 모델로는 재지 못했다 |
-| 입력 세 경로가 동작하고 탐지와 rsai-grade 엔드포인트가 실제로 호출된다 | CSV와 문서 경로는 로컬에서 동작한다. 두 엔드포인트는 만들지 못해 호출된 적이 없다 |
-| 업체 측 에이전트 한 곳이 Ollama 모델로 같은 규칙 아래 대화한다 | 안 됐다. GPU 할당량이 없어 Ollama VM을 만들지 못했다. 업체 설정에는 Ollama로 적혀 있고 실제 답은 규칙 정책이 쓴다 |
+| 근거 검증기 통과율 100%. 통과하지 못한 숫자와 조항은 화면과 문서에 나오지 않는다 | 규칙 정책 기준으로 됐다. 실제 모델(Foundry gpt-5-mini)로 한 번 재 보니 회사 측 초안 다수가 첫 시도와 다시 쓴 시도 모두 거부됐다. 검증기가 막아 화면에 나오지는 않았다 |
+| 입력 세 경로가 동작하고 탐지와 rsai-grade 엔드포인트가 실제로 호출된다 | 탐지는 배포 주소에서 VM 안 채점 서버로 호출된다. CSV와 문서 경로는 동작한다. rsai-grade 엔드포인트는 만들지 못했다 |
+| 업체 측 에이전트 한 곳이 Ollama 모델로 같은 규칙 아래 대화한다 | 일부. Ollama는 VM에서 CPU로 돈다(GPU 할당량 0). 실제 모델 모드에서만 그 업체가 Ollama로 답하는데, 그 모드는 위 검증 문제로 아직 시연할 수 없다 |
 | 고정 사례 시험과 Foundry 평가 리포트가 있다 | 고정 사례 시험과 리포트는 있다. Foundry 평가는 돌리지 못했다 |
-| infra/로 환경을 다시 만들 수 있고 스크립트가 동작한다. main 병합이 배포 환경에 반영된다 | 인프라 생성, stop.sh는 실행했다. deploy.sh, seed-demo.sh, start.sh, teardown.sh와 배포 워크플로는 실행하지 못했다 |
+| infra/로 환경을 다시 만들 수 있고 스크립트가 동작한다. main 병합이 배포 환경에 반영된다 | 인프라 생성, stop.sh, 앱 VM 생성과 `infra/vm/deploy-vm.sh`는 실행했다. main 병합은 자동으로 반영되지 않고 `deploy-vm.sh`를 손으로 돌린다. teardown.sh와 App Service용 deploy.sh는 실행하지 못했다 |
 | 설계 문서 갱신이 설계 문서 저장소 main에 커밋되어 있다 | 됐다. 설계안 v3, 이 문서, DESIGN.md v3 화면 규칙이 main에 있다(PR #18~#20) |
 
 ## 4. 구현하면서 정한 것
