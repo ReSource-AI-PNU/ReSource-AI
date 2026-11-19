@@ -13,9 +13,9 @@
 
 ## 1. 한눈에 보기
 
-- 배출 기업과 업체가 자료를 올리고, 회사 측 AI와 업체 측 AI가 대화해 폐기물별 업체 배정과 월 손익, 요청서와 이행 계획서까지 나오는 과정이 **배포 주소(https://rsai-o7xpbty4q5vgs.centralus.cloudapp.azure.com)에서 실제 모델로 돈다.** 회사 측과 업체 두 곳은 Foundry gpt-5-mini, 업체 한 곳(시연의 남해열분해)은 GPU VM의 Ollama qwen2.5:7b가 쓴다. 체험하기는 배포 때 실제 모델로 승인 대기까지 돌린 진단을 보여 주고, 실제 모델이 실패하면 규칙 정책으로 되돌려 둔다.
+- 배출 기업과 업체가 자료를 올리고, 회사 측 AI와 업체 측 AI가 대화해 폐기물별 업체 배정과 월 손익, 요청서와 이행 계획서까지 나오는 과정이 **배포 주소(https://rsai-o7xpbty4q5vgs.centralus.cloudapp.azure.com)에서 실제 모델로 돈다.** 회사 측과 업체 두 곳은 Foundry gpt-5-mini, 업체 한 곳(시연의 남해열분해)은 H100 계산 인스턴스의 Ollama qwen2.5:32b가 쓴다(11-19까지는 A10 GPU VM의 qwen2.5:7b). 체험하기는 배포 때 실제 모델로 승인 대기까지 돌린 진단을 보여 주고, 실제 모델이 실패하면 규칙 정책으로 되돌려 둔다.
 - 배포는 App Service(할당량 0)와 Container Apps(공급자 미등록) 대신 Central US의 CPU VM 한 대에 Docker Compose로 했다(backend `infra/vm.bicep`, `infra/vm/`). DB와 같은 지역이다.
-- GPU VM(East US, NV18ads_A10_v5, `infra/gpu-vm.bicep`)은 앱 VNet과 피어링했다. 맥의 launchd 감시(`infra/gpu/install-gpu-auto.sh`)가 1분마다 앱 로그를 보고, Ollama 호출이 생기면 켜고(준비까지 약 2~3분) 5분 동안 쓰지 않으면 끈다. 꺼진 동안 Ollama 차례는 Foundry가 대신 답한다(`OLLAMA_FALLBACK=1`).
+- 업체 측 오픈 모델은 2026-11-19부터 Azure ML 작업 영역 `team-workspace`의 H100 계산 인스턴스 `rsai-h100`(NC40ads_H100_v5, H100 NVL 94GB, eastus2)에서 돈다. 구독의 VM 할당량에는 H100이 없어 ML 계산 할당량을 썼다. 전용 VNet을 앱 VNet과 피어링했고 Ollama는 사설 주소에만 묶는다. 조직위 요청대로 서비스하지 않을 때 `infra/h100/h100.sh down`으로 끄고, 꺼진 동안 Ollama 차례는 Foundry가 대신 답한다(`OLLAMA_FALLBACK=1`). 시험셋 20사례(업체 측만 바꿈)에서 qwen2.5:7b 10/20, qwen2.5:32b 20/20, Foundry 19/20이었다. 예전 A10 GPU VM(East US)은 할당 해제해 예비로 두고, 맥의 자동 켜기·끄기는 내렸다.
 - 백엔드 테스트는 1,503개가 통과하고 5개는 건너뛴다(2026-11-19 main 483aecc. 건너뛰는 것은 PostGIS, Agent Framework, Azure SDK, OpenTelemetry, OpenCV가 필요한 테스트다). 프런트는 단위 시험, 타입 검사, 빌드, 브라우저 E2E(5개 통과, bff 전용 1개 건너뜀)를 통과한다.
 - 실제 모델 평가(test-v1, Foundry gpt-5-mini, 2026-11-18): 나간 글의 근거 없는 숫자 0/378, 첫 초안 근거 검증 통과 0.972, 끝까지 맞게 마친 비율 0.886, 조직 간 노출 0, 표적 공격 성공 0. 기대값은 전문가 검토 전 초안이다. 결과는 공개 신뢰 페이지(`/trust`)에 있다.
 
@@ -24,8 +24,8 @@
 | 단계 | 내용 | 상태 |
 |---|---|---|
 | 0 | 환경 조사와 계획 | 끝남 |
-| 1 | 인프라(Bicep) | **검증됨(배포):** VNet, 로그, ACR, Key Vault, Storage, PostgreSQL, Foundry와 gpt-5-mini·임베딩, Document Intelligence, Content Safety, AI Search, 앱 VM, GPU VM(East US, 피어링). **막힘:** Container Apps, Azure Maps, Fabric(공급자 미등록), 역할 할당(리소스 그룹 Contributor 권한) |
-| 1-1 | 배포 경로 | **검증됨(배포):** `infra/vm/deploy-vm.sh`가 커밋된 소스를 VM에서 빌드해 Caddy(HTTPS), frontend, backend, detector를 띄운다. 비밀은 Key Vault에서 읽어 VM의 env 파일에만 쓴다. `USE_OLLAMA=gpu`면 GPU VM을 먼저 켠다. main 병합은 자동으로 배포되지 않는다 |
+| 1 | 인프라(Bicep) | **검증됨(배포):** VNet, 로그, ACR, Key Vault, Storage, PostgreSQL, Foundry와 gpt-5-mini·임베딩, Document Intelligence, Content Safety, AI Search, 앱 VM, GPU VM(East US, 피어링, 지금은 예비로 꺼 둠), H100 계산 인스턴스(Azure ML, eastus2, 피어링). **막힘:** Container Apps, Azure Maps, Fabric(공급자 미등록), 역할 할당(리소스 그룹 Contributor 권한) |
+| 1-1 | 배포 경로 | **검증됨(배포):** `infra/vm/deploy-vm.sh`가 커밋된 소스를 VM에서 빌드해 Caddy(HTTPS), frontend, backend, detector를 띄운다. 비밀은 Key Vault에서 읽어 VM의 env 파일에만 쓴다. `USE_OLLAMA=h100`이면 H100 계산 인스턴스를 먼저 켠다(예전 `USE_OLLAMA=gpu`는 A10 GPU VM). main 병합은 자동으로 배포되지 않는다 |
 | 2 | 근거 저장소와 근거 검증기 | **검증됨(배포):** 근거 레지스트리(PostgreSQL), 근거 검증기, 자리표시자 렌더링, 가정값 등록. 법령 26개 조항, 환경성적표지 배출계수(소각·재활용), 등급 기준값 v2(공개 규격 출처). AI Search에 시드 48건을 색인했다. **작성됨(미실행):** 법령 Open API 수집. **막힘:** Fabric Lakehouse |
 | 3 | 입력 세 경로 | **검증됨(배포):** 측정값 CSV, 문서 추출(Document Intelligence)과 사람 확인, Prompt Shields(업로드 문서), 사진·영상 탐지(VM 안 detector 컨테이너, CPU). 등급은 측정값 우선, 없으면 사진 추정이고 기준값 v2 규칙으로 낸다. **작성됨(미실행):** rsai-grade 엔드포인트와 AutoML 정의. **안 함:** 탐지 모델을 Azure ML로 옮기기, 사진 위 탐지 박스 그리기 |
 | 4 | 판단 도구 | **검증됨:** 판단 도구 11개(결정적 함수, calc 근거), 고정 사례, OR-Tools(CP-SAT 배정, CVRP 노선)를 완전 탐색으로 다시 확인한 뒤에만 쓰기, 공공데이터 허가 명부(3,152곳) 후보, 카카오 도로 거리(키가 있을 때). **작성됨(미실행):** MCP 서버 배포(로컬 시험만), Azure Maps 거리 |
