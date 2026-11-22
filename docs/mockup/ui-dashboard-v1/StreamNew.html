@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>폐기물 등록 · Re:Source AI 시안</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F7F8}
+a{color:#3F3F47}a:hover{color:#111114}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3F3F47}
+input,select{min-height:44px;border:1px solid #D4D4D9;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#111114;background:#FFFFFF;box-sizing:border-box;width:100%}
+</style>
+
+</head>
+<body>
+
+
+<div style="min-height: 1000px; background: #F7F7F8; color: #111114; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif; word-break: keep-all; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="주 메뉴" style="flex: 0 0 76px; background: #FFFFFF; border-right: 1px solid #ECECEF; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 0">
+<div style="width: 36px; height: 36px; border-radius: 10px; background: #111114; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; margin-bottom: 12px">R</div>
+<a href="Main.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>찾기</a>
+<a href="materials-st_sprue.html" aria-current="page" style="width: 64px; min-height: 56px; border-radius: 10px; background: #F2F2F4; color: #111114; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h10l6 6v10H4z"></path><path d="M14 4v6h6"></path></svg>자료</a>
+<a href="Approval.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>승인·서류</a>
+<a href="Report.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M22 20H2"></path></svg>실적</a>
+<a href="Trust.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; margin-top: auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg>AI 신뢰도</a>
+</nav>
+
+<nav aria-label="자료 메뉴" style="flex: 0 0 248px; background: #F7F7F8; border-right: 1px solid #ECECEF; padding: 24px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 15px; font-weight: 700; padding: 0 12px 12px">자료</div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #6E6E78; padding: 8px 12px 6px"><span>폐기물</span><span style="font-family: 'Geist Mono', monospace">4</span></div>
+<a href="materials-st_sprue.html" style="min-height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 8px; color: #3F3F47; text-decoration: none; font-size: 14px"><span>스프루·런너</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #6E6E78">600 kg</span></a>
+<a href="materials-st_sprue.html" style="min-height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 8px; color: #3F3F47; text-decoration: none; font-size: 14px"><span>불량 사출품</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #6E6E78">400 kg</span></a>
+<a href="materials-st_sprue.html" style="min-height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 8px; color: #3F3F47; text-decoration: none; font-size: 14px"><span>포장 필름</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #6E6E78">300 kg</span></a>
+<a href="materials-st_sprue.html" style="min-height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 8px; color: #3F3F47; text-decoration: none; font-size: 14px"><span>퍼지 덩어리</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #6E6E78">250 kg</span></a>
+<a href="#" aria-current="page" style="min-height: 44px; margin-top: 4px; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; border: 1px solid #D4D4D9; background: #FFFFFF; color: #111114; text-decoration: none; font-size: 13px; font-weight: 600">+ 폐기물 등록</a>
+<div style="font-size: 12px; color: #6E6E78; padding: 20px 12px 6px">보관장</div>
+<a href="materials-st_sprue.html" style="min-height: 40px; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; color: #3F3F47; text-decoration: none; font-size: 14px">3D 스캔</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 20px 32px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+<header>
+<div style="font-size: 13px; color: #6E6E78">자료 › 폐기물 › 새 폐기물</div>
+<h1 style="margin: 6px 0 8px; font-size: 24px; line-height: 1.3; font-weight: 700; letter-spacing: -0.025em">폐기물 등록</h1>
+<p style="margin: 0; font-size: 14px; color: #3F3F47">세 단계로 등록합니다. 모르는 칸은 비워 두면 찾기에서 담당자에게 묻습니다.</p>
+</header>
+
+<ol aria-label="등록 단계" style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px">
+<li style="flex: 1 1 180px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; background: #FFFFFF; border: 1px solid #111114"><span style="width: 24px; height: 24px; border-radius: 999px; background: #111114; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px">1</span><span style="font-size: 14px; font-weight: 600">무엇인지</span></li>
+<li style="flex: 1 1 180px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; background: #FFFFFF; border: 1px solid #ECECEF; color: #6E6E78"><span style="width: 24px; height: 24px; border-radius: 999px; border: 1px solid #D4D4D9; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px">2</span><span style="font-size: 14px">얼마나 · 지금 처리</span></li>
+<li style="flex: 1 1 180px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; background: #FFFFFF; border: 1px solid #ECECEF; color: #6E6E78"><span style="width: 24px; height: 24px; border-radius: 999px; border: 1px solid #D4D4D9; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px">3</span><span style="font-size: 14px">사진·측정값 (선택)</span></li>
+</ol>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<section aria-label="무엇인지" style="flex: 2 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #ECECEF; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="font-size: 15px; font-weight: 650">1 · 무엇인지</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px">
+<label>이름<input type="text" placeholder="예: 불량 사출품"></label>
+<label>나오는 공정<input type="text" placeholder="예: 사출"></label>
+<label>폐기물 종류<select><option>폐플라스틱</option><option>포장재</option><option>금속 스크랩</option><option>폐목재</option></select></label>
+<label>재질<select><option>PP</option><option>PE</option><option>LDPE</option><option>ABS</option><option>섞임 · 모름</option></select></label>
+<label>형태<select><option>가공 전</option><option>분쇄</option><option>필름</option><option>덩어리</option></select></label>
+<label>어디서 나왔나<select><option>공정에서 나온 것</option><option>쓰고 버린 포장재</option></select></label>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #3F3F47">섞인 것</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="min-height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; border: 1px solid #D4D4D9; font-size: 13px">종이 라벨</span>
+<span style="min-height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; border: 1px solid #D4D4D9; font-size: 13px">금속 인서트</span>
+</div>
+</div>
+<div style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ECECEF">
+<a href="materials-st_sprue.html" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: transparent; color: #3F3F47; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px">취소</a>
+<a href="StreamNew2.html" style="min-height: 44px; padding: 0 20px; display: inline-flex; align-items: center; border-radius: 10px; background: #111114; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 600">다음</a>
+</div>
+</section>
+
+<aside aria-label="도움말" style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1px solid #ECECEF; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 15px; font-weight: 650">사진으로 채우기 (다음 단계)</div>
+<div style="font-size: 14px; color: #3F3F47; line-height: 1.6">폐기물 사진을 올리면 재질 표기와 섞인 것을 찾아 칸을 미리 채웁니다. 담당자가 확인해야 등록됩니다.</div>
+<div style="padding-top: 14px; border-top: 1px solid #ECECEF; font-size: 13px; color: #6E6E78; line-height: 1.6">재질이 섞였거나 모르면 "섞임 · 모름"을 고르세요. 찾기에서 업체 매입 기준과 대조할 때 조건부로 다룹니다.</div>
+</aside>
+</div>
+<div style="font-size: 12px; color: #6E6E78">시안 · 입력 칸 예시는 시연 회사의 불량 사출품입니다.</div>
+</main>
+</div>
+
+<a href="index.html" style="position:fixed;right:16px;bottom:16px;z-index:50;min-height:40px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:#111114;color:#fff;font:600 13px system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.2)">전체 화면 목록</a>
+</body>
+</html>

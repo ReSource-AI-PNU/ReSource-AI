@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D 스캔 진행 · Re:Source AI 시안</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F7F8}
+a{color:#3F3F47}a:hover{color:#111114}
+@keyframes rsdot{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.rsdot span{display:inline-block;width:6px;height:6px;border-radius:999px;background:#111114;margin-right:3px;animation:rsdot 1.2s infinite}
+.rsdot span:nth-child(2){animation-delay:.2s}.rsdot span:nth-child(3){animation-delay:.4s}
+@media (prefers-reduced-motion: reduce){.rsdot span{animation:none;opacity:.6}}
+</style>
+
+</head>
+<body>
+
+
+<div style="min-height: 1000px; background: #F7F7F8; color: #111114; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif; word-break: keep-all; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="주 메뉴" style="flex: 0 0 76px; background: #FFFFFF; border-right: 1px solid #ECECEF; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 0">
+<div style="width: 36px; height: 36px; border-radius: 10px; background: #111114; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; margin-bottom: 12px">R</div>
+<a href="Main.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 11px">찾기</a>
+<a href="materials-st_sprue.html" aria-current="page" style="width: 64px; min-height: 56px; border-radius: 10px; background: #F2F2F4; color: #111114; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600">자료</a>
+<a href="Approval.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 11px">승인·서류</a>
+<a href="Report.html" style="width: 64px; min-height: 56px; border-radius: 10px; color: #6E6E78; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 11px">실적</a>
+</nav>
+
+<nav aria-label="자료 메뉴" style="flex: 0 0 248px; background: #F7F7F8; border-right: 1px solid #ECECEF; padding: 24px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 15px; font-weight: 700; padding: 0 12px 12px">자료</div>
+<a href="materials-st_sprue.html" style="min-height: 40px; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; color: #3F3F47; text-decoration: none; font-size: 14px">폐기물 4개</a>
+<div style="font-size: 12px; color: #6E6E78; padding: 20px 12px 6px">보관장</div>
+<a href="#" aria-current="page" style="min-height: 40px; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: #FFFFFF; border: 1px solid #D4D4D9; color: #111114; text-decoration: none; font-size: 14px; font-weight: 600">3D 스캔</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 20px 32px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+<header>
+<div style="font-size: 13px; color: #6E6E78">자료 › 보관장 › 3D 스캔</div>
+<h1 style="margin: 6px 0 8px; font-size: 24px; line-height: 1.3; font-weight: 700; letter-spacing: -0.025em">보관장 3D 스캔</h1>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<section aria-label="새 스캔 진행" aria-live="polite" style="flex: 1 1 380px; min-width: 0; max-width: 520px; background: #FFFFFF; border: 1px solid #ECECEF; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div>
+<div style="font-size: 15px; font-weight: 650">새 스캔을 만드는 중입니다</div>
+<div style="font-size: 13px; color: #6E6E78; margin-top: 4px">몇 분 걸립니다. 이 화면을 닫아도 계속됩니다.</div>
+</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+<li style="display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid #ECECEF; font-size: 14px"><span style="width: 22px; height: 22px; border-radius: 999px; background: #3F3F47; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px">✓</span><span>장면 고르기</span></li>
+<li style="display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid #ECECEF; font-size: 14px; font-weight: 600"><span style="width: 22px; height: 22px; border-radius: 999px; border: 2px solid #111114; box-sizing: border-box"></span><span>3D로 재구성하는 중</span><span class="rsdot" style="margin-left: auto" aria-hidden="true"><span></span><span></span><span></span></span></li>
+<li style="display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid #ECECEF; font-size: 14px; color: #6E6E78"><span style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid #D4D4D9; box-sizing: border-box"></span><span>실제 크기 맞추는 중</span></li>
+<li style="display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid #ECECEF; font-size: 14px; color: #6E6E78"><span style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid #D4D4D9; box-sizing: border-box"></span><span>바닥과 더미 찾는 중</span></li>
+</ol>
+<div style="font-size: 12px; color: #6E6E78; line-height: 1.55">실패하면 이유와 다시 찍는 방법을 한 줄로 알려 드립니다.</div>
+</section>
+
+<section aria-label="지난 스캔" style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #ECECEF; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 15px; font-weight: 650">지난 스캔 · 11월 22일 18:40 · 장면 72장</div>
+<div style="display: flex; flex-wrap: wrap; gap: 0">
+<div style="flex: 1 1 80px; padding-right: 14px"><div style="font-size: 12px; color: #6E6E78">더미</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 4px">5<span style="font-family: 'Noto Sans KR', sans-serif; font-size: 13px; margin-left: 2px">개</span></div></div>
+<div style="flex: 1 1 80px; padding: 0 14px; border-left: 1px solid #ECECEF"><div style="font-size: 12px; color: #6E6E78">부피</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 4px">4.63<span style="font-family: 'Noto Sans KR', sans-serif; font-size: 13px; margin-left: 2px">m³</span></div></div>
+<div style="flex: 1 1 100px; padding-left: 14px; border-left: 1px solid #ECECEF"><div style="font-size: 12px; color: #6E6E78">무게</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 4px">797~1,639<span style="font-family: 'Noto Sans KR', sans-serif; font-size: 13px; margin-left: 2px">kg</span></div></div>
+</div>
+<div style="font-size: 13px; color: #3F3F47">더미 5개 모두 폐기물을 골랐습니다 · 정리안: 붙은 더미 쌍 7 → 0</div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 1px solid #ECECEF; font-size: 12px; color: #6E6E78; line-height: 1.55">
+<span>실제 크기를 휴대폰 높이(가슴 높이) 가정으로 맞췄습니다. 휴대폰을 가슴 높이에 들고 찍으면 정확해집니다.</span>
+<span>실제 크기 추정이 ±20% 안에서 흔들려 부피 범위에 반영했습니다.</span>
+</div>
+</section>
+</div>
+<div style="font-size: 12px; color: #6E6E78">시안 · 배포된 체험하기의 시연 스캔 값을 옮겼습니다. 진행 단계 목록은 화면 규칙(DESIGN.md)의 단계입니다.</div>
+</main>
+</div>
+
+<a href="index.html" style="position:fixed;right:16px;bottom:16px;z-index:50;min-height:40px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:#111114;color:#fff;font:600 13px system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.2)">전체 화면 목록</a>
+</body>
+</html>
