@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>측정값 적기 · Re:Source AI 시안</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F7F8}
+a{color:#3F3F47}a:hover{color:#111114}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3F3F47}
+input[type=text],select{min-height:44px;border:1px solid #D4D4D9;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#111114;background:#FFFFFF;box-sizing:border-box;width:100%}
+</style>
+
+</head>
+<body>
+
+
+<div style="position: relative; min-height: 1000px; background: #F7F7F8; color: #111114; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif; word-break: keep-all; overflow: hidden">
+
+<div aria-hidden="true" style="display: flex; min-height: 1000px">
+<div style="flex: 0 0 76px; background: #FFFFFF; border-right: 1px solid #ECECEF"></div>
+<div style="flex: 0 0 248px; border-right: 1px solid #ECECEF"></div>
+<div style="flex: 1; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<div style="height: 28px; width: 300px; border-radius: 6px; background: #E4E4E8"></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px"><div style="height: 180px; border-radius: 14px; background: #FFFFFF"></div><div style="height: 180px; border-radius: 14px; background: #FFFFFF"></div><div style="height: 180px; border-radius: 14px; background: #FFFFFF"></div><div style="height: 180px; border-radius: 14px; background: #FFFFFF"></div></div>
+</div>
+</div>
+
+<div style="position: absolute; inset: 0; background: rgba(17,17,20,0.25)"></div>
+
+<aside role="dialog" aria-modal="true" aria-labelledby="t" style="position: absolute; top: 0; right: 0; bottom: 0; width: min(100%, 520px); background: #FFFFFF; border-left: 1px solid #ECECEF; box-shadow: -12px 0 40px rgba(0,0,0,0.12); display: flex; flex-direction: column">
+<div style="padding: 20px 24px; border-bottom: 1px solid #ECECEF; display: flex; gap: 12px; align-items: flex-start">
+<div style="flex: 1">
+<div style="font-size: 12px; color: #6E6E78">자료 › 불량 사출품 › 측정값</div>
+<h2 id="t" style="margin: 4px 0 0; font-size: 20px; font-weight: 650; letter-spacing: -0.02em">측정값 적기</h2>
+</div>
+<a href="materials-st_sprue.html" aria-label="닫기" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #3F3F47"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+</div>
+
+<div style="flex: 1; overflow: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px; background: #F7F7F8; font-size: 13px">
+<div style="display: flex; justify-content: space-between"><span style="color: #6E6E78">지금 쓰는 오염도</span><span>6% · 사진 추정</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #6E6E78">지금 쓰는 수분</span><span style="color: #8A5200">확인 필요</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<label class="f">오염도<span style="display: flex; align-items: center; gap: 8px"><input type="text" inputmode="decimal" placeholder="숫자"><span style="font-size: 14px">%</span></span></label>
+<label class="f">수분<span style="display: flex; align-items: center; gap: 8px"><input type="text" inputmode="decimal" placeholder="숫자"><span style="font-size: 14px">%</span></span></label>
+<label class="f">잰 날<input type="text" placeholder="2026-11-22"></label>
+</div>
+
+
+<div style="font-size: 13px; color: #3F3F47; line-height: 1.6">측정값이 있으면 사진 추정값 대신 씁니다. 매입 기준과 대조할 때 "조건부"가 풀릴 수 있습니다.</div>
+</div>
+
+<div style="padding: 16px 24px; border-top: 1px solid #ECECEF; display: flex; gap: 8px; justify-content: flex-end">
+<a href="materials-st_sprue.html" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 10px; color: #3F3F47; text-decoration: none; font-size: 14px">취소</a>
+<a href="materials-st_sprue.html" style="min-height: 44px; padding: 0 20px; border-radius: 10px; border: 0; background: #111114; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; font-weight: 600">측정값 등록</a>
+</div>
+</aside>
+</div>
+
+<a href="index.html" style="position:fixed;right:16px;bottom:16px;z-index:50;min-height:40px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:#111114;color:#fff;font:600 13px system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.2)">전체 화면 목록</a>
+</body>
+</html>
